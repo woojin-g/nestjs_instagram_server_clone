@@ -1,18 +1,21 @@
-import { Body, Controller, Headers, Post } from '@nestjs/common';
+import { Body, Controller, Headers, Post, Request, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { TokenPrefix, TokenType } from './const/auth.const';
-import { PasswordPipe } from './pipe/password.pipe';
+import { MaxLengthPipe, MinLengthPipe } from './pipe/password.pipe';
+import { BasicTokenGuard } from './guard/basic-token.guard';
+import { RefreshTokenGuard } from './guard/bearer-token.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
   @Post('login/email')
-  postLoginEmail(@Headers('Authorization') rawToken: string) {
-    const token = this.authService.extractTokenFromHeader(
-      rawToken,
-      TokenPrefix.BASIC,
-    );
+  @UseGuards(BasicTokenGuard)
+  postLoginEmail(
+    @Headers('authorization') rawToken: string,
+    @Request() req: Request,
+  ) {
+    const token = this.authService.extractTokenFromHeader(rawToken, TokenPrefix.BASIC);
     const credentials = this.authService.decodeBasicToken(token);
     return this.authService.loginWithEmail(credentials);
   }
@@ -21,7 +24,7 @@ export class AuthController {
   postRegisterEmail(
     @Body('nickname') nickname: string,
     @Body('email') email: string,
-    @Body('password', PasswordPipe) password: string,
+    @Body('password', new MaxLengthPipe(8), new MinLengthPipe(3)) password: string,
   ) {
     return this.authService.registerWithEmail({
       nickname,
@@ -31,7 +34,8 @@ export class AuthController {
   }
 
   @Post('token/refresh')
-  postRefreshToken(@Headers('Authorization') rawToken: string) {
+  @UseGuards(RefreshTokenGuard)
+  postRefreshToken(@Headers('authorization') rawToken: string) {
     const token = this.authService.extractTokenFromHeader(
       rawToken,
       TokenPrefix.BEARER,

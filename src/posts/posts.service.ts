@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { QueryFailedError, Repository } from 'typeorm';
-import { PostsModel } from './entities/posts.entity';
+import { PostsModel } from './entity/posts.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
@@ -13,7 +13,7 @@ export class PostsService {
   constructor(
     @InjectRepository(PostsModel)
     private readonly postsRepository: Repository<PostsModel>,
-  ) {}
+  ) { }
 
   async getAllPosts(): Promise<PostsModel[]> {
     return this.postsRepository.find({ relations: ['author'] });
@@ -34,6 +34,7 @@ export class PostsService {
     authorId: number,
     title: string,
     content: string,
+    isPublic: boolean,
   ): Promise<PostsModel> {
     if (!authorId || !title || !content) {
       throw new BadRequestException();
@@ -44,6 +45,7 @@ export class PostsService {
       content,
       likeCount: 0,
       commentCount: 0,
+      isPublic,
     });
     try {
       const createdPost = await this.postsRepository.save(postData);

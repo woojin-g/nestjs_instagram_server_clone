@@ -4,21 +4,14 @@ import {
   CreateDateColumn,
   Entity,
   Generated,
-  JoinColumn,
   ManyToOne,
-  OneToOne,
-  PrimaryGeneratedColumn,
   UpdateDateColumn,
   VersionColumn,
 } from 'typeorm';
+import { BaseModel } from 'src/common/entity/base.entity';
 
 @Entity()
-export class PostsModel {
-  // @PrimaryColumn() : 기본 키 직접 지정
-  // @PrimaryGeneratedColumn() : 자동 생성
-  // @PrimaryGeneratedColumn({ type: 'uuid' }) : UUID 생성
-  @PrimaryGeneratedColumn()
-  id: number;
+export class PostsModel extends BaseModel {
 
   /* *** Column 프로퍼티 설명 ***
   @Column({
@@ -48,13 +41,8 @@ export class PostsModel {
   @Column()
   commentCount: number;
 
-  // 생성 일시 자동 생성
-  @CreateDateColumn()
-  createdAt: Date;
-
-  // 수정 일시 자동 생성
-  @UpdateDateColumn()
-  updatedAt: Date;
+  @Column()
+  isPublic: boolean;
 
   // save() 함수가 호출될 때마다 1씩 증가 (즉, 최초 저장 시 1)
   @VersionColumn()

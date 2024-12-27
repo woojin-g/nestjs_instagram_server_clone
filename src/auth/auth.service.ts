@@ -1,5 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
 import { UsersModel } from 'src/users/entities/users.entity';
 import {
   HASH_ROUNDS,
@@ -15,7 +15,7 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
-  ) {}
+  ) { }
 
   async loginWithEmail(user: Pick<UsersModel, 'email' | 'password'>) {
     const existingUser = await this.authenticateWithEmailAndPassword(user);
@@ -34,9 +34,9 @@ export class AuthService {
     return this.loginUser(newUser);
   }
 
-  private async authenticateWithEmailAndPassword(
+  async authenticateWithEmailAndPassword(
     user: Pick<UsersModel, 'email' | 'password'>,
-  ) {
+  ): Promise<UsersModel> {
     const existingUser = await this.usersService.getUserByEmail(user.email);
     if (!existingUser) {
       throw new UnauthorizedException(
@@ -77,8 +77,8 @@ export class AuthService {
     });
   }
 
-  extractTokenFromHeader(header: string, tokenPrefix: TokenPrefix): string {
-    const splitToken = header.split(' ');
+  extractTokenFromHeader(rawToken: string, tokenPrefix: TokenPrefix): string {
+    const splitToken = rawToken.split(' ');
     if (splitToken.length !== 2 || tokenPrefix.valueOf() !== splitToken[0]) {
       throw new UnauthorizedException(
         'UNAUTHORIZED',
@@ -104,7 +104,14 @@ export class AuthService {
   }
 
   verifyToken(token: string) {
-    return this.jwtService.verify(token, { secret: JWT_SECRET });
+    try {
+      return this.jwtService.verify(token, { secret: JWT_SECRET });
+    }
+    catch (e) {
+      if (e instanceof JsonWebTokenError) {
+        throw new UnauthorizedException('UNAUTHORIZED', '잘못된 토큰입니다.');
+      }
+    }
   }
 
   rotateToken(refreshToken: string, tokenTypeToRotate: TokenType) {
