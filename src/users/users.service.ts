@@ -12,13 +12,13 @@ export class UsersService {
   constructor(
     @InjectRepository(UsersModel)
     private readonly usersRepository: Repository<UsersModel>,
-  ) {}
+  ) { }
 
   async createUser(
     user: Pick<UsersModel, 'nickname' | 'email' | 'password'>,
   ): Promise<UsersModel> {
     if (!user.nickname || !user.email || !user.password) {
-      throw new BadRequestException('BAD_REQUEST', '잘못된 요청입니다.');
+      throw new BadRequestException('잘못된 요청입니다.');
     }
 
     const nicknameExists = await this.usersRepository.exists({

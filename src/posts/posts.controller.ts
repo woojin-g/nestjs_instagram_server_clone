@@ -13,7 +13,7 @@ import { PostsModel } from './entities/posts.entity';
 
 @Controller('posts')
 export class PostsController {
-  constructor(private readonly postsService: PostsService) {}
+  constructor(private readonly postsService: PostsService) { }
 
   @Get()
   getPosts(): Promise<PostsModel[]> {
@@ -22,11 +22,7 @@ export class PostsController {
 
   @Get(':id')
   getPostById(
-    @Param(
-      'id',
-      // Pipe 클래스를 상속하여 커스텀 Pipe를 만들 수 있다.
-      ParseIntPipe,
-    )
+    @Param('id', ParseIntPipe)
     id: number,
   ): Promise<PostsModel> {
     return this.postsService.getPostById(id);
@@ -34,7 +30,7 @@ export class PostsController {
 
   @Post()
   postPosts(
-    @Body('authorId') authorId: number,
+    @Body('authorId', ParseIntPipe) authorId: number,
     @Body('title') title: string,
     @Body('content') content: string,
   ): Promise<PostsModel> {
@@ -43,15 +39,15 @@ export class PostsController {
 
   @Put(':id')
   putPosts(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body('title') title?: string,
     @Body('content') content?: string,
   ): Promise<PostsModel> {
-    return this.postsService.updatePost(+id, title, content);
+    return this.postsService.updatePost(id, title, content);
   }
 
   @Delete(':id')
-  deletePosts(@Param('id') id: string): Promise<number> {
-    return this.postsService.deletePost(+id);
+  deletePosts(@Param('id', ParseIntPipe) id: number): Promise<number> {
+    return this.postsService.deletePost(id);
   }
 }
