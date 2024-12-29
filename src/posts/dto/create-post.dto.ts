@@ -1,20 +1,9 @@
-import { Transform } from "class-transformer";
-import { IsBoolean, IsNotEmpty } from "class-validator";
+import { PickType } from "@nestjs/mapped-types";
+import { PostsModel } from "../entity/posts.entity";
+import { IsBoolean } from "class-validator";
+import { IsOptional } from "class-validator";
+import { Type } from "class-transformer";
 
-import { IsString } from "class-validator";
+// PickType, OmitType, PartialType 등을 활용하여 DTO를 구현할 수 있다.
 
-export class CreatePostDto {
-  @IsString()
-  @IsNotEmpty()
-  title: string;
-
-  @IsString()
-  @IsNotEmpty()
-  content: string;
-
-  @IsBoolean()
-  @IsNotEmpty()
-  // null인 경우, true로 변환
-  @Transform(({ value }) => value ?? true)
-  isPublic: boolean = true;
-}
+export class CreatePostDto extends PickType(PostsModel, ['title', 'content']) { }

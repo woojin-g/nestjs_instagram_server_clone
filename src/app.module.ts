@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { ClassSerializerInterceptor, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PostsModule } from './posts/posts.module';
@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { UsersModel } from './users/entities/users.entity';
 import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -32,6 +33,14 @@ import { CommonModule } from './common/common.module';
     CommonModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      // ClassSerializerInterceptor는 엔티티나 DTO 클래스에서 @Exclude(), @Expose() 등의 데코레이터로 표시된 속성들을 처리한다.
+      // 앱 전반적으로 적용하기 위해 전역 인터셉터로 설정한다.
+      useClass: ClassSerializerInterceptor,
+    }
+  ],
 })
 export class AppModule { }

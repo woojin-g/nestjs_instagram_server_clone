@@ -5,27 +5,33 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
-  Put,
+  Query,
   UseGuards,
-  ValidationPipe,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { PostsModel } from './entity/posts.entity';
 import { AccessTokenGuard } from 'src/auth/guard/bearer-token.guard';
 import { User } from 'src/users/decorator/user.decorator';
 import { CreatePostDto } from './dto/create-post.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
+import { PaginatePostRequestDto, PaginatePostResponseDto } from './dto/paginate-post.dto';
 
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) { }
 
   @Get()
-  getPosts(): Promise<PostsModel[]> {
-    return this.postsService.getAllPosts();
+  @UseGuards(AccessTokenGuard)
+  getPosts(
+    @Query() body: PaginatePostRequestDto,
+  ): Promise<PaginatePostResponseDto> {
+    return this.postsService.paginatePosts(body);
   }
 
   @Get(':id')
+  @UseGuards(AccessTokenGuard)
   getPostById(
     // Pipe는 Injectable 이므로 자동으로 주입됨
     @Param('id', ParseIntPipe)
@@ -38,25 +44,35 @@ export class PostsController {
   @UseGuards(AccessTokenGuard)
   postPosts(
     @User('id') userId: number,
-    @Body(new ValidationPipe({ transform: true })) createPostDto: CreatePostDto,
+    @Body() body: CreatePostDto,
   ): Promise<PostsModel> {
     return this.postsService.createPost(
       userId,
-      createPostDto,
+      body,
     );
   }
 
-  @Put(':id')
-  putPosts(
+  @Patch(':id')
+  @UseGuards(AccessTokenGuard)
+  patchPosts(
     @Param('id', ParseIntPipe) id: number,
-    @Body('title') title?: string,
-    @Body('content') content?: string,
+    @Body() body: UpdatePostDto,
   ): Promise<PostsModel> {
-    return this.postsService.updatePost(id, title, content);
+    return this.postsService.updatePost(id, body);
   }
 
   @Delete(':id')
+  @UseGuards(AccessTokenGuard)
   deletePosts(@Param('id', ParseIntPipe) id: number): Promise<number> {
     return this.postsService.deletePost(id);
+  }
+
+  @Post('random')
+  @UseGuards(AccessTokenGuard)
+  async postRandomPosts(
+    @User('id') userId: number,
+  ): Promise<boolean> {
+    await this.postsService.generatePosts(userId);
+    return true;
   }
 }

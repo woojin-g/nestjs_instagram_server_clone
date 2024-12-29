@@ -10,6 +10,7 @@ import {
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { ErrorCode } from 'src/common/const/error.const';
+import { RegisterUserDto } from './dto/register-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -18,18 +19,17 @@ export class AuthService {
     private readonly usersService: UsersService,
   ) { }
 
+  // Pick, Omit, Partial 등을 활용하여 원하는 필드만 선택할 수 있다.
   async loginWithEmail(user: Pick<UsersModel, 'email' | 'password'>) {
     const existingUser = await this.authenticateWithEmailAndPassword(user);
     return this.loginUser(existingUser);
   }
 
-  async registerWithEmail(
-    user: Pick<UsersModel, 'nickname' | 'email' | 'password'>,
-  ) {
-    const hash = await bcrypt.hash(user.password, HASH_ROUNDS);
+  async registerWithEmail(registerUserDto: RegisterUserDto) {
+    const hash = await bcrypt.hash(registerUserDto.password, HASH_ROUNDS);
     const newUser = await this.usersService.createUser({
-      nickname: user.nickname,
-      email: user.email,
+      nickname: registerUserDto.nickname,
+      email: registerUserDto.email,
       password: hash,
     });
     return this.loginUser(newUser);

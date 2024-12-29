@@ -1,14 +1,14 @@
 import { UsersModel } from 'src/users/entities/users.entity';
 import {
   Column,
-  CreateDateColumn,
   Entity,
   Generated,
   ManyToOne,
-  UpdateDateColumn,
   VersionColumn,
 } from 'typeorm';
 import { BaseModel } from 'src/common/entity/base.entity';
+import { IsNotEmpty, IsString } from 'class-validator';
+import { notEmptyValidationMessage, stringValidationMessage } from 'src/common/validation-message/validation-message';
 
 @Entity()
 export class PostsModel extends BaseModel {
@@ -30,9 +30,13 @@ export class PostsModel extends BaseModel {
   author: UsersModel;
 
   @Column()
+  @IsString({ message: stringValidationMessage })
+  @IsNotEmpty({ message: notEmptyValidationMessage })
   title: string;
 
   @Column()
+  @IsString({ message: stringValidationMessage })
+  @IsNotEmpty({ message: notEmptyValidationMessage })
   content: string;
 
   @Column()
@@ -41,8 +45,10 @@ export class PostsModel extends BaseModel {
   @Column()
   commentCount: number;
 
-  @Column()
-  isPublic: boolean;
+  // @Column()
+  // @Type(() => Boolean)
+  // @IsBoolean({ message: booleanValidationMessage })
+  // isPublic: boolean = true;
 
   // save() 함수가 호출될 때마다 1씩 증가 (즉, 최초 저장 시 1)
   @VersionColumn()

@@ -4,13 +4,15 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { QueryFailedError, Repository } from 'typeorm';
+import { MoreThan, QueryFailedError, Repository } from 'typeorm';
 import { PostsModel } from './entity/posts.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthService } from 'src/auth/auth.service';
 import { UsersService } from 'src/users/users.service';
 import { ErrorCode } from 'src/common/const/error.const';
 import { CreatePostDto } from './dto/create-post.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
+import { PaginatePostRequestDto, PaginatePostResponseDto } from './dto/paginate-post.dto';
 
 @Injectable()
 export class PostsService {
@@ -21,8 +23,23 @@ export class PostsService {
     private readonly usersService: UsersService,
   ) { }
 
-  async getAllPosts(): Promise<PostsModel[]> {
-    return this.postsRepository.find({ relations: ['author'] });
+  // async getAllPosts(): Promise<PostsModel[]> {
+  //   return this.postsRepository.find({ relations: ['author'] });
+  // }
+
+  async paginatePosts(dto: PaginatePostRequestDto): Promise<PaginatePostResponseDto> {
+    const data = await this.postsRepository.find({
+      where: {
+        id: MoreThan(dto.where__id_more_than ?? 0),
+      },
+      order: {
+        createdAt: dto.order__createdAt,
+      },
+      take: dto.take,
+    });
+    return {
+      data,
+    };
   }
 
   async getPostById(id: number): Promise<PostsModel> {
@@ -38,14 +55,14 @@ export class PostsService {
 
   async createPost(
     authorId: number,
-    createPostDto: CreatePostDto,
+    dto: CreatePostDto,
   ): Promise<PostsModel> {
-    if (!authorId || !createPostDto.title || !createPostDto.content) {
+    if (!authorId || !dto.title || !dto.content) {
       throw new BadRequestException(ErrorCode.BAD_REQUEST, '잘못된 요청입니다.');
     }
     const postData = this.postsRepository.create({
       author: { id: authorId },
-      ...createPostDto,
+      ...dto,
       likeCount: 0,
       commentCount: 0,
     });
@@ -71,15 +88,14 @@ export class PostsService {
 
   async updatePost(
     id: number,
-    title?: string,
-    content?: string,
+    dto: UpdatePostDto,
   ): Promise<PostsModel> {
     const foundPost = await this.postsRepository.findOneBy({ id: id });
     if (!foundPost) {
       throw new NotFoundException(ErrorCode.NOT_FOUND_POST, '존재하지 않는 게시글입니다.');
     }
-    foundPost.title = title ?? foundPost.title;
-    foundPost.content = content ?? foundPost.content;
+    foundPost.title = dto.title ?? foundPost.title;
+    foundPost.content = dto.content ?? foundPost.content;
     const updatedPost = await this.postsRepository.save(foundPost);
     return updatedPost;
   }
@@ -91,5 +107,14 @@ export class PostsService {
     }
     await this.postsRepository.delete(id);
     return foundPost.id;
+  }
+
+  async generatePosts(userId: number) {
+    for (let i = 0; i < 100; i++) {
+      await this.createPost(userId, {
+        title: `title ${i}`,
+        content: `content ${i}`,
+      });
+    }
   }
 }
