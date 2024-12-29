@@ -6,6 +6,8 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersModel } from './entities/users.entity';
 import { Repository } from 'typeorm';
+import { ErrorCode } from 'src/common/const/error.const';
+import { TokenType } from 'src/auth/const/auth.const';
 
 @Injectable()
 export class UsersService {
@@ -18,7 +20,7 @@ export class UsersService {
     user: Pick<UsersModel, 'nickname' | 'email' | 'password'>,
   ): Promise<UsersModel> {
     if (!user.nickname || !user.email || !user.password) {
-      throw new BadRequestException('잘못된 요청입니다.');
+      throw new BadRequestException(ErrorCode.BAD_REQUEST, '잘못된 요청입니다.');
     }
 
     const nicknameExists = await this.usersRepository.exists({
@@ -26,7 +28,7 @@ export class UsersService {
     });
     if (nicknameExists) {
       throw new ConflictException(
-        'NICKNAME_ALREADY_EXISTS',
+        ErrorCode.NICKNAME_ALREADY_EXISTS,
         '이미 존재하는 닉네임입니다.',
       );
     }
@@ -36,7 +38,7 @@ export class UsersService {
     });
     if (emailExists) {
       throw new ConflictException(
-        'EMAIL_ALREADY_EXISTS',
+        ErrorCode.EMAIL_ALREADY_EXISTS,
         '이미 존재하는 이메일입니다.',
       );
     }
@@ -56,5 +58,11 @@ export class UsersService {
 
   async getUserByEmail(email: string): Promise<UsersModel> {
     return this.usersRepository.findOne({ where: { email } });
+  }
+
+  async saveToken(user: Pick<UsersModel, 'id'>, token: string, tokenType: TokenType) {
+    await this.usersRepository.update(user.id, {
+      [`${tokenType}Token`]: token,
+    });
   }
 }

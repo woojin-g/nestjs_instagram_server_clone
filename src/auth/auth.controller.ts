@@ -12,8 +12,8 @@ export class AuthController {
   @Post('login/email')
   @UseGuards(BasicTokenGuard)
   postLoginEmail(
-    @Headers('authorization') rawToken: string,
     @Request() req: Request,
+    @Headers('authorization') rawToken: string,
   ) {
     const token = this.authService.extractTokenFromHeader(rawToken, TokenPrefix.BASIC);
     const credentials = this.authService.decodeBasicToken(token);
@@ -35,13 +35,15 @@ export class AuthController {
 
   @Post('token/refresh')
   @UseGuards(RefreshTokenGuard)
-  postRefreshToken(@Headers('authorization') rawToken: string) {
+  async postRefreshToken(
+    @Headers('authorization') rawToken: string,
+  ) {
     const token = this.authService.extractTokenFromHeader(
       rawToken,
       TokenPrefix.BEARER,
     );
-    const accessToken = this.authService.rotateToken(token, TokenType.ACCESS);
-    const refreshToken = this.authService.rotateToken(token, TokenType.REFRESH);
+    const accessToken = await this.authService.rotateToken(token, TokenType.ACCESS);
+    const refreshToken = await this.authService.rotateToken(token, TokenType.REFRESH);
     return {
       accessToken,
       refreshToken,

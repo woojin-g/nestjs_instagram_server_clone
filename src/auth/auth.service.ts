@@ -9,6 +9,7 @@ import {
 } from './const/auth.const';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
+import { ErrorCode } from 'src/common/const/error.const';
 
 @Injectable()
 export class AuthService {
@@ -40,48 +41,50 @@ export class AuthService {
     const existingUser = await this.usersService.getUserByEmail(user.email);
     if (!existingUser) {
       throw new UnauthorizedException(
-        'UNAUTHORIZED',
+        ErrorCode.UNAUTHORIZED,
         '존재하지 않는 사용자입니다.',
       );
     }
     const isPassed = await bcrypt.compare(user.password, existingUser.password);
     if (!isPassed) {
       throw new UnauthorizedException(
-        'WRONG_PASSWORD',
+        ErrorCode.WRONG_PASSWORD,
         '비밀번호가 일치하지 않습니다.',
       );
     }
     return existingUser;
   }
 
-  private loginUser(user: Pick<UsersModel, 'email' | 'id'>) {
+  private async loginUser(user: Pick<UsersModel, 'email' | 'id'>) {
     return {
-      accessToken: this.signToken(user, TokenType.ACCESS),
-      refreshToken: this.signToken(user, TokenType.REFRESH),
+      accessToken: await this.signToken(user, TokenType.ACCESS),
+      refreshToken: await this.signToken(user, TokenType.REFRESH),
     };
   }
 
-  private signToken(
+  private async signToken(
     user: Pick<UsersModel, 'email' | 'id'>,
     tokenType: TokenType,
-  ): string {
+  ): Promise<string> {
     const payload = {
       email: user.email,
       id: user.id,
       type: tokenType,
     };
 
-    return this.jwtService.sign(payload, {
+    const token = this.jwtService.sign(payload, {
       secret: JWT_SECRET,
       expiresIn: tokenType === TokenType.REFRESH ? 3600 : 300,
     });
+    await this.usersService.saveToken(user, token, tokenType);
+    return token;
   }
 
   extractTokenFromHeader(rawToken: string, tokenPrefix: TokenPrefix): string {
     const splitToken = rawToken.split(' ');
     if (splitToken.length !== 2 || tokenPrefix.valueOf() !== splitToken[0]) {
       throw new UnauthorizedException(
-        'UNAUTHORIZED',
+        ErrorCode.UNAUTHORIZED,
         '잘못된 토큰 형식입니다.',
       );
     }
@@ -93,7 +96,7 @@ export class AuthService {
     const split = decoded.split(':');
     if (split.length != 2) {
       throw new UnauthorizedException(
-        'UNAUTHORIZED',
+        ErrorCode.UNAUTHORIZED,
         '잘못된 토큰 형식입니다.',
       );
     }
@@ -104,21 +107,24 @@ export class AuthService {
   }
 
   verifyToken(token: string) {
+    let payload;
     try {
-      return this.jwtService.verify(token, { secret: JWT_SECRET });
+      payload = this.jwtService.verify(token, { secret: JWT_SECRET });
     }
     catch (e) {
       if (e instanceof JsonWebTokenError) {
-        throw new UnauthorizedException('UNAUTHORIZED', '잘못된 토큰입니다.');
+        throw new UnauthorizedException(ErrorCode.UNAUTHORIZED, '잘못된 토큰입니다.');
       }
     }
+    // TODO: 만료 여부 확인
+    return payload;
   }
 
-  rotateToken(refreshToken: string, tokenTypeToRotate: TokenType) {
+  async rotateToken(refreshToken: string, tokenTypeToRotate: TokenType): Promise<string> {
     const decoded = this.jwtService.decode(refreshToken);
     if (!decoded || decoded.type !== 'refresh') {
-      throw new UnauthorizedException('UNAUTHORIZED', '잘못된 토큰입니다.');
+      throw new UnauthorizedException(ErrorCode.UNAUTHORIZED, '잘못된 토큰입니다.');
     }
-    return this.signToken(decoded, tokenTypeToRotate);
+    return await this.signToken(decoded, tokenTypeToRotate);
   }
 }

@@ -26,4 +26,10 @@ export class UsersModel extends BaseModel {
 
   @OneToMany(() => PostsModel, (post) => post.author)
   posts: PostsModel[];
+
+  @Column({ nullable: true })
+  accessToken: string;
+
+  @Column({ nullable: true })
+  refreshToken: string;
 }
