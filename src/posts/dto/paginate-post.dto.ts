@@ -1,22 +1,20 @@
-import { IsIn, IsNumber, IsOptional } from "class-validator";
-import { numberValidationMessage } from "src/common/validation-message/validation-message";
 import { PostsModel } from "../entity/posts.entity";
-import { Type } from "class-transformer";
+import { BasePaginationDto } from "src/common/dto/base-pagination.dto";
 
-export class PaginatePostRequestDto {
-  @IsNumber({}, { message: numberValidationMessage })
-  @IsOptional()
-  where__id_more_than?: number;
-
-  @IsIn(['ASC', 'DESC'])
-  @IsOptional()
-  order__createdAt?: 'ASC' = 'ASC';
-
-  @IsNumber({}, { message: numberValidationMessage })
-  @IsOptional()
-  take: number = 20;
-}
+export class PaginatePostRequestDto extends BasePaginationDto { }
 
 export class PaginatePostResponseDto {
   data: PostsModel[];
+}
+
+export class PagePaginatePostResponseDto extends PaginatePostResponseDto {
+  total: number;
+}
+
+export class CursorPaginatePostResponseDto extends PaginatePostResponseDto {
+  count: number;
+  cursor: {
+    nextPostId?: number;
+  };
+  nextUrl: string;
 }

@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { MoreThan, QueryFailedError, Repository } from 'typeorm';
+import { FindOptionsWhere, LessThan, MoreThan, QueryFailedError, Repository } from 'typeorm';
 import { PostsModel } from './entity/posts.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthService } from 'src/auth/auth.service';
@@ -12,7 +12,8 @@ import { UsersService } from 'src/users/users.service';
 import { ErrorCode } from 'src/common/const/error.const';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { PaginatePostRequestDto, PaginatePostResponseDto } from './dto/paginate-post.dto';
+import { PaginatePostRequestDto, CursorPaginatePostResponseDto, PagePaginatePostResponseDto, PaginatePostResponseDto } from './dto/paginate-post.dto';
+import { HOST, PROTOCOL } from 'src/common/const/env.const';
 
 @Injectable()
 export class PostsService {
@@ -23,15 +24,18 @@ export class PostsService {
     private readonly usersService: UsersService,
   ) { }
 
-  // async getAllPosts(): Promise<PostsModel[]> {
-  //   return this.postsRepository.find({ relations: ['author'] });
-  // }
-
   async paginatePosts(dto: PaginatePostRequestDto): Promise<PaginatePostResponseDto> {
-    const data = await this.postsRepository.find({
-      where: {
-        id: MoreThan(dto.where__id_more_than ?? 0),
-      },
+    if (dto.page) {
+      return this.pagePaginatePosts(dto);
+    }
+    return this.cursorPaginatePosts(dto);
+  }
+
+  // 페이지 기반 페이지네이션
+  private async pagePaginatePosts(dto: PaginatePostRequestDto): Promise<PagePaginatePostResponseDto> {
+    const [data, total] = await this.postsRepository.findAndCount({
+      // page는 1부터 시작
+      skip: dto.take * (dto.page - 1),
       order: {
         createdAt: dto.order__createdAt,
       },
@@ -39,6 +43,58 @@ export class PostsService {
     });
     return {
       data,
+      total,
+    };
+  }
+
+  // 커서 기반 페이지네이션
+  private async cursorPaginatePosts(dto: PaginatePostRequestDto): Promise<CursorPaginatePostResponseDto> {
+    const where: FindOptionsWhere<PostsModel> = {};
+
+    // ? createAt 기준으로 정렬하고 있으니 ID 기준으로 조회하는 것은 잘못된 것 아닌가?
+    if (dto.where__id__less_than) {
+      where.id = LessThan(dto.where__id__less_than);
+    }
+    else if (dto.where__id__more_than) {
+      where.id = MoreThan(dto.where__id__more_than);
+    }
+
+    const data = await this.postsRepository.find({
+      where: where,
+      order: {
+        createdAt: dto.order__createdAt,
+      },
+      take: dto.take,
+    });
+
+    const count = data.length;
+    const lastItem = data.length > 0 && data.length === dto.take ? data[data.length - 1] : null;
+    const cursor = {
+      nextPostId: lastItem?.id ?? null,
+    };
+
+    const nextUrl = lastItem && new URL(`${PROTOCOL}://${HOST}/posts`);
+    if (nextUrl) {
+      for (const key of Object.keys(dto)) {
+        if (dto[key] && key !== 'where__id__more_than' && key !== 'where__id__less_than') {
+          nextUrl.searchParams.append(key, dto[key]);
+        }
+      }
+
+      let key = null;
+      if (dto.order__createdAt == 'ASC') {
+        key = 'where__id__more_than';
+      } else if (dto.order__createdAt == 'DESC') {
+        key = 'where__id__less_than';
+      }
+      nextUrl.searchParams.append(key, lastItem.id.toString());
+    }
+
+    return {
+      data,
+      count,
+      cursor,
+      nextUrl: nextUrl?.toString() ?? null,
     };
   }
 
