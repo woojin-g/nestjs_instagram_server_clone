@@ -2,8 +2,6 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
 import { UsersModel } from 'src/users/entities/users.entity';
 import {
-  HASH_ROUNDS,
-  JWT_SECRET,
   TokenPrefix,
   TokenType,
 } from './const/auth.const';
@@ -11,12 +9,15 @@ import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { ErrorCode } from 'src/common/const/error.const';
 import { RegisterUserDto } from './dto/register-user.dto';
+import { ConfigService } from '@nestjs/config';
+import { ENV_HASH_ROUNDS_KEY, ENV_JWT_SECRET_KEY } from 'src/common/const/env-keys.const';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
+    private readonly configService: ConfigService,
   ) { }
 
   // Pick, Omit, Partial 등을 활용하여 원하는 필드만 선택할 수 있다.
@@ -26,7 +27,10 @@ export class AuthService {
   }
 
   async registerWithEmail(registerUserDto: RegisterUserDto) {
-    const hash = await bcrypt.hash(registerUserDto.password, HASH_ROUNDS);
+    const hash = await bcrypt.hash(
+      registerUserDto.password,
+      this.configService.get<number>(ENV_HASH_ROUNDS_KEY),
+    );
     const newUser = await this.usersService.createUser({
       nickname: registerUserDto.nickname,
       email: registerUserDto.email,
@@ -73,7 +77,7 @@ export class AuthService {
     };
 
     const token = this.jwtService.sign(payload, {
-      secret: JWT_SECRET,
+      secret: this.configService.get(ENV_JWT_SECRET_KEY),
       expiresIn: tokenType === TokenType.REFRESH ? 3600 : 300,
     });
     await this.usersService.saveToken(user, token, tokenType);
@@ -109,7 +113,10 @@ export class AuthService {
   verifyToken(token: string) {
     let payload;
     try {
-      payload = this.jwtService.verify(token, { secret: JWT_SECRET });
+      payload = this.jwtService.verify(
+        token,
+        { secret: this.configService.get(ENV_JWT_SECRET_KEY) },
+      );
     }
     catch (e) {
       if (e instanceof JsonWebTokenError) {

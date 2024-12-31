@@ -1,7 +1,8 @@
 import { IsIn, IsNumber, IsOptional } from "class-validator";
 import { numberValidationMessage } from "src/common/validation-message/validation-message";
+import { BaseModel } from "../entity/base.entity";
 
-export class BasePaginationDto {
+export class BasePaginationRequestDto {
   @IsNumber({}, { message: numberValidationMessage })
   @IsOptional()
   page?: number;
@@ -21,4 +22,20 @@ export class BasePaginationDto {
   @IsNumber({}, { message: numberValidationMessage })
   @IsOptional()
   take: number = 20;
+}
+
+export class BasePaginationResponseDto<T extends BaseModel> {
+  data: T[];
+}
+
+export class PagePaginationResponseDto<T extends BaseModel> extends BasePaginationResponseDto<T> {
+  total: number;
+}
+
+export class CursorPaginationResponseDto<T extends BaseModel> extends BasePaginationResponseDto<T> {
+  count: number;
+  cursor: {
+    nextPostId?: number;
+  };
+  nextUrl: string;
 }

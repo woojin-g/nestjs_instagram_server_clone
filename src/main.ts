@@ -17,6 +17,11 @@ async function bootstrap() {
       //   - @Transform(({ value }) => Number(value))
       enableImplicitConversion: true,
     },
+    // 요청에 포함된 프로퍼티 중, 데코레이터가 적용되지 않은 프로퍼티는 제거한다.
+    // 즉, 서버에서 의도하지 않은 프로퍼티를 클라이언트가 전달하는 것을 방지한다.
+    whitelist: true,
+    // 요청에 포함된 프로퍼티 중, 데코레이터가 적용되지 않은 프로퍼티가 있으면 예외를 발생시킨다.
+    forbidNonWhitelisted: true,
   }));
 
   await app.listen(process.env.PORT ?? 3000);

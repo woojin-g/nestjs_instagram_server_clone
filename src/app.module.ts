@@ -9,19 +9,30 @@ import { UsersModel } from './users/entities/users.entity';
 import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { ConfigModule } from '@nestjs/config';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { PUBLIC_FOLDER_ABSOLUTE_PATH } from './common/const/path.const';
 
 @Module({
   imports: [
+    // 환경변수 적용
+    ConfigModule.forRoot({
+      envFilePath: '.env',
+      isGlobal: true,
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: PUBLIC_FOLDER_ABSOLUTE_PATH,
+      serveRoot: '/public',
+    }),
     // TypeORM과 NestJS를 연결
     TypeOrmModule.forRoot({
       // 데이터베이스 타입
       type: 'postgres',
-      host: '127.0.0.1',
-      port: 5432,
-      // ! 배포 환경에서는 환경변수로 설정
-      username: 'postgres',
-      password: 'postgres',
-      database: 'postgres',
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT),
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
       entities: [UsersModel, PostsModel],
       // ORM이 데이터베이스 스키마를 자동으로 동기화
       // ! 개발 환경에서만 사용

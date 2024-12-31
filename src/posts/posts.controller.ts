@@ -8,7 +8,9 @@ import {
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { PostsModel } from './entity/posts.entity';
@@ -16,7 +18,9 @@ import { AccessTokenGuard } from 'src/auth/guard/bearer-token.guard';
 import { User } from 'src/users/decorator/user.decorator';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { PaginatePostRequestDto, PaginatePostResponseDto } from './dto/paginate-post.dto';
+import { PostsPaginationRequestDto } from './dto/posts-pagination.dto';
+import { CursorPaginationResponseDto, PagePaginationResponseDto } from 'src/common/dto/base-pagination.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('posts')
 export class PostsController {
@@ -25,8 +29,8 @@ export class PostsController {
   @Get()
   @UseGuards(AccessTokenGuard)
   getPosts(
-    @Query() body: PaginatePostRequestDto,
-  ): Promise<PaginatePostResponseDto> {
+    @Query() body: PostsPaginationRequestDto,
+  ): Promise<PagePaginationResponseDto<PostsModel> | CursorPaginationResponseDto<PostsModel>> {
     return this.postsService.paginatePosts(body);
   }
 
@@ -42,14 +46,12 @@ export class PostsController {
 
   @Post()
   @UseGuards(AccessTokenGuard)
-  postPosts(
+  async postPosts(
     @User('id') userId: number,
     @Body() body: CreatePostDto,
   ): Promise<PostsModel> {
-    return this.postsService.createPost(
-      userId,
-      body,
-    );
+    await this.postsService.createPostImage(body);
+    return this.postsService.createPost(userId, body);
   }
 
   @Patch(':id')

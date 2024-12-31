@@ -9,6 +9,9 @@ import {
 import { BaseModel } from 'src/common/entity/base.entity';
 import { IsNotEmpty, IsString } from 'class-validator';
 import { notEmptyValidationMessage, stringValidationMessage } from 'src/common/validation-message/validation-message';
+import { join } from 'path';
+import { POSTS_FOLDER_RELATIVE_PATH } from 'src/common/const/path.const';
+import { Transform } from 'class-transformer';
 
 @Entity()
 export class PostsModel extends BaseModel {
@@ -38,6 +41,12 @@ export class PostsModel extends BaseModel {
   @IsString({ message: stringValidationMessage })
   @IsNotEmpty({ message: notEmptyValidationMessage })
   content: string;
+
+  // 단일 이미지 저장
+  @Column({ nullable: true })
+  // 파일 이름 변환 : {file_name} -> /public/posts/{file_name}
+  @Transform(({ value }) => `/${join(POSTS_FOLDER_RELATIVE_PATH, value)}`)
+  image?: string;
 
   @Column()
   likeCount: number;
