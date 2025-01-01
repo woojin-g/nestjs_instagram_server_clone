@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
   Param,
   ParseIntPipe,
   Patch,
@@ -21,9 +20,11 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { PostsPaginationRequestDto } from './dto/posts-pagination.dto';
 import { CursorPaginationResponseDto, PagePaginationResponseDto } from 'src/common/dto/base-pagination.dto';
 import { ImageModelType } from 'src/common/entity/image.entity';
-import { DataSource } from 'typeorm';
+import { DataSource, QueryRunner as QR } from 'typeorm';
 import { PostsImagesService } from './images/images.service';
 import { LogInterceptor } from 'src/common/interceptor/log.interceptor';
+import { TransactionInterceptor } from 'src/common/interceptor/transaction.interceptor';
+import { QueryRunner } from 'src/common/decorator/query-runner.decorator';
 
 @Controller('posts')
 export class PostsController {
@@ -63,50 +64,33 @@ export class PostsController {
 
   @Post()
   @UseGuards(AccessTokenGuard)
+  @UseInterceptors(TransactionInterceptor)
   async postPosts(
+    @QueryRunner() queryRunner: QR,
     @User('id') userId: number,
     @Body() body: CreatePostDto,
   ): Promise<PostModel> {
-    // 트랜잭션과 관련된 모든 쿼리를 담당할 쿼리 러너를 생성한다.
-    const qr = this.dataSource.createQueryRunner();
-    // 쿼리 러너를 데이터베이스에 연결한다.
-    await qr.connect();
-    // 트랜잭션을 시작한다.
-    await qr.startTransaction();
+    // PostModel 먼저 생성
+    const post = await this.postsService.createPost(userId, body, queryRunner);
 
-    try {
-      // PostModel 먼저 생성
-      const post = await this.postsService.createPost(userId, body, qr);
-
-      // 모든 이미지들에 대해 ImageModel 생성 + PostModel과 연결
-      await Promise.all(
-        body.images.map((image, index) =>
-          this.postsImagesService.createPostImage(
-            {
-              order: index,
-              type: ImageModelType.POST,
-              path: image,
-              post,
-            },
-            qr,
-          ),
+    // 모든 이미지들에 대해 ImageModel 생성 + PostModel과 연결
+    await Promise.all(
+      body.images.map((image, index) =>
+        this.postsImagesService.createPostImage(
+          {
+            order: index,
+            type: ImageModelType.POST,
+            path: image,
+            post,
+          },
+          queryRunner,
         ),
-      );
+      ),
+    );
 
-      // 트랜잭션 종료 후 커밋
-      await qr.commitTransaction();
-
-      return this.postsService.getPostById(post.id);
-    }
-    catch (error) {
-      // 트랜잭션 종료 후 롤백
-      await qr.rollbackTransaction();
-      throw error;
-    }
-    finally {
-      // 쿼리 러너 연결 해제
-      await qr.release();
-    }
+    // 트랜잭션이 완전히 커밋되기 전에 조회할 경우 조회 결과가 없을 수 있으므로,
+    // 마찬가지로 QueryRunner를 사용해서 조회한다.
+    return this.postsService.getPostById(post.id, queryRunner);
   }
 
   @Patch(':id')

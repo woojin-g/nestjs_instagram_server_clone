@@ -8,7 +8,7 @@ export const User = createParamDecorator((data: keyof UserModel | undefined, con
   if (!user) {
     throw new InternalServerErrorException(
       ErrorCode.INTERNAL_SERVER_ERROR,
-      'Request에 user 프로퍼티가 없습니다.',
+      'User 데코레이터를 사용하려면 AccessTokenGuard를 사용해야 합니다.',
     );
   }
 

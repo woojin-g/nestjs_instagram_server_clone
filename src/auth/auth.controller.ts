@@ -12,7 +12,6 @@ export class AuthController {
   @Post('login/email')
   @UseGuards(BasicTokenGuard)
   postLoginEmail(
-    @Request() req: Request,
     @Headers('authorization') rawToken: string,
   ) {
     const token = this.authService.extractTokenFromHeader(rawToken, TokenPrefix.BASIC);
