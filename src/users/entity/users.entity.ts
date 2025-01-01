@@ -1,6 +1,6 @@
 import { Column, Entity, OneToMany } from 'typeorm';
 import { UserRole } from '../const/users.const';
-import { PostsModel } from 'src/posts/entity/posts.entity';
+import { PostModel } from 'src/posts/entity/posts.entity';
 import { BaseModel } from 'src/common/entity/base.entity';
 import { IsEmail, IsNotEmpty, Length } from 'class-validator';
 import { IsString } from 'class-validator';
@@ -12,7 +12,7 @@ import { Exclude, Expose } from 'class-transformer';
 @Entity()
 // 전체 프로퍼티에 Exclude 데코레이터를 적용하고, API 통신 시 보여줄 데이터만 Expose 데코레이터를 적용하도록 할 수도 있다.
 // @Exclude()
-export class UsersModel extends BaseModel {
+export class UserModel extends BaseModel {
   @Column({ length: 20, unique: true })
   @IsString({ message: stringValidationMessage })
   @IsNotEmpty({ message: notEmptyValidationMessage })
@@ -48,8 +48,8 @@ export class UsersModel extends BaseModel {
   })
   role: UserRole;
 
-  @OneToMany(() => PostsModel, (post) => post.author)
-  posts: PostsModel[];
+  @OneToMany(() => PostModel, (post) => post.author)
+  posts: PostModel[];
 
   @Column({ nullable: true })
   @Exclude()

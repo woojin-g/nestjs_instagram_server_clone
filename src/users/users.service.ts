@@ -4,7 +4,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UsersModel } from './entities/users.entity';
+import { UserModel } from './entity/users.entity';
 import { Repository } from 'typeorm';
 import { ErrorCode } from 'src/common/const/error.const';
 import { TokenType } from 'src/auth/const/auth.const';
@@ -12,25 +12,15 @@ import { TokenType } from 'src/auth/const/auth.const';
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(UsersModel)
-    private readonly usersRepository: Repository<UsersModel>,
+    @InjectRepository(UserModel)
+    private readonly usersRepository: Repository<UserModel>,
   ) { }
 
   async createUser(
-    user: Pick<UsersModel, 'nickname' | 'email' | 'password'>,
-  ): Promise<UsersModel> {
+    user: Pick<UserModel, 'nickname' | 'email' | 'password'>,
+  ): Promise<UserModel> {
     if (!user.nickname || !user.email || !user.password) {
       throw new BadRequestException(ErrorCode.BAD_REQUEST, '잘못된 요청입니다.');
-    }
-
-    const nicknameExists = await this.usersRepository.exists({
-      where: { nickname: user.nickname },
-    });
-    if (nicknameExists) {
-      throw new ConflictException(
-        ErrorCode.NICKNAME_ALREADY_EXISTS,
-        '이미 존재하는 닉네임입니다.',
-      );
     }
 
     const emailExists = await this.usersRepository.exists({
@@ -43,6 +33,16 @@ export class UsersService {
       );
     }
 
+    const nicknameExists = await this.usersRepository.exists({
+      where: { nickname: user.nickname },
+    });
+    if (nicknameExists) {
+      throw new ConflictException(
+        ErrorCode.NICKNAME_ALREADY_EXISTS,
+        '이미 존재하는 닉네임입니다.',
+      );
+    }
+
     const userModel = this.usersRepository.create({
       nickname: user.nickname,
       email: user.email,
@@ -52,15 +52,15 @@ export class UsersService {
     return newUser;
   }
 
-  async getAllUsers(): Promise<UsersModel[]> {
+  async getAllUsers(): Promise<UserModel[]> {
     return this.usersRepository.find();
   }
 
-  async getUserByEmail(email: string): Promise<UsersModel> {
+  async getUserByEmail(email: string): Promise<UserModel> {
     return this.usersRepository.findOne({ where: { email } });
   }
 
-  async saveToken(user: Pick<UsersModel, 'id'>, token: string, tokenType: TokenType) {
+  async saveToken(user: Pick<UserModel, 'id'>, token: string, tokenType: TokenType) {
     await this.usersRepository.update(user.id, {
       [`${tokenType}Token`]: token,
     });

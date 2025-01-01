@@ -1,20 +1,19 @@
-import { UsersModel } from 'src/users/entities/users.entity';
+import { UserModel } from 'src/users/entity/users.entity';
 import {
   Column,
   Entity,
   Generated,
   ManyToOne,
+  OneToMany,
   VersionColumn,
 } from 'typeorm';
 import { BaseModel } from 'src/common/entity/base.entity';
 import { IsNotEmpty, IsString } from 'class-validator';
 import { notEmptyValidationMessage, stringValidationMessage } from 'src/common/validation-message/validation-message';
-import { join } from 'path';
-import { POSTS_FOLDER_RELATIVE_PATH } from 'src/common/const/path.const';
-import { Transform } from 'class-transformer';
+import { ImageModel } from 'src/common/entity/image.entity';
 
 @Entity()
-export class PostsModel extends BaseModel {
+export class PostModel extends BaseModel {
 
   /* *** Column 프로퍼티 설명 ***
   @Column({
@@ -29,8 +28,8 @@ export class PostsModel extends BaseModel {
   })
     */
 
-  @ManyToOne(() => UsersModel, (user) => user.posts, { nullable: false })
-  author: UsersModel;
+  @ManyToOne(() => UserModel, (user) => user.posts, { nullable: false })
+  author: UserModel;
 
   @Column()
   @IsString({ message: stringValidationMessage })
@@ -43,10 +42,17 @@ export class PostsModel extends BaseModel {
   content: string;
 
   // 단일 이미지 저장
-  @Column({ nullable: true })
-  // 파일 이름 변환 : {file_name} -> /public/posts/{file_name}
-  @Transform(({ value }) => `/${join(POSTS_FOLDER_RELATIVE_PATH, value)}`)
-  image?: string;
+  // @Column({ nullable: true })
+  // // 파일 이름 변환 : {file_name} -> /public/posts/{file_name}
+  // @Transform(({ value }) => `/${join(POSTS_FOLDER_RELATIVE_PATH, value)}`)
+  // image?: string;
+
+  // 다중 이미지 저장
+  @OneToMany(
+    () => ImageModel,
+    (image) => image.post
+  )
+  images: ImageModel[];
 
   @Column()
   likeCount: number;

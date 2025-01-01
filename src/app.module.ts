@@ -3,15 +3,16 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PostsModule } from './posts/posts.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { PostsModel } from './posts/entity/posts.entity';
+import { PostModel } from './posts/entity/posts.entity';
 import { UsersModule } from './users/users.module';
-import { UsersModel } from './users/entities/users.entity';
+import { UserModel } from './users/entity/users.entity';
 import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { PUBLIC_FOLDER_ABSOLUTE_PATH } from './common/const/path.const';
+import { ImageModel } from './common/entity/image.entity';
 
 @Module({
   imports: [
@@ -33,7 +34,11 @@ import { PUBLIC_FOLDER_ABSOLUTE_PATH } from './common/const/path.const';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [UsersModel, PostsModel],
+      entities: [
+        UserModel,
+        PostModel,
+        ImageModel,
+      ],
       // ORM이 데이터베이스 스키마를 자동으로 동기화
       // ! 개발 환경에서만 사용
       synchronize: true,

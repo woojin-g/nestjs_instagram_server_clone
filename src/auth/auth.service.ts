@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
-import { UsersModel } from 'src/users/entities/users.entity';
+import { UserModel } from 'src/users/entity/users.entity';
 import {
   TokenPrefix,
   TokenType,
@@ -21,15 +21,16 @@ export class AuthService {
   ) { }
 
   // Pick, Omit, Partial 등을 활용하여 원하는 필드만 선택할 수 있다.
-  async loginWithEmail(user: Pick<UsersModel, 'email' | 'password'>) {
+  async loginWithEmail(user: Pick<UserModel, 'email' | 'password'>) {
     const existingUser = await this.authenticateWithEmailAndPassword(user);
     return this.loginUser(existingUser);
   }
 
   async registerWithEmail(registerUserDto: RegisterUserDto) {
+    const hashRounds = parseInt(this.configService.get(ENV_HASH_ROUNDS_KEY));
     const hash = await bcrypt.hash(
       registerUserDto.password,
-      this.configService.get<number>(ENV_HASH_ROUNDS_KEY),
+      hashRounds,
     );
     const newUser = await this.usersService.createUser({
       nickname: registerUserDto.nickname,
@@ -40,8 +41,8 @@ export class AuthService {
   }
 
   async authenticateWithEmailAndPassword(
-    user: Pick<UsersModel, 'email' | 'password'>,
-  ): Promise<UsersModel> {
+    user: Pick<UserModel, 'email' | 'password'>,
+  ): Promise<UserModel> {
     const existingUser = await this.usersService.getUserByEmail(user.email);
     if (!existingUser) {
       throw new UnauthorizedException(
@@ -59,7 +60,7 @@ export class AuthService {
     return existingUser;
   }
 
-  private async loginUser(user: Pick<UsersModel, 'email' | 'id'>) {
+  private async loginUser(user: Pick<UserModel, 'email' | 'id'>) {
     return {
       accessToken: await this.signToken(user, TokenType.ACCESS),
       refreshToken: await this.signToken(user, TokenType.REFRESH),
@@ -67,7 +68,7 @@ export class AuthService {
   }
 
   private async signToken(
-    user: Pick<UsersModel, 'email' | 'id'>,
+    user: Pick<UserModel, 'email' | 'id'>,
     tokenType: TokenType,
   ): Promise<string> {
     const payload = {
