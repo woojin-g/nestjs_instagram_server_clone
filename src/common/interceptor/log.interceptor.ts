@@ -22,12 +22,7 @@ export class LogInterceptor implements NestInterceptor {
           console.log(`[RES] ${path} ${statusCode} (${timeDiff}ms, ${responseTime.toLocaleString('kr')})`);
         }),
         // 응답을 변형하고자 할 때 사용
-        // map((res) => {
-        //   return {
-        //     message: '응답 변형',
-        //     res,
-        //   };
-        // }),
+        // map((res) => { }),
       );
   }
 }
