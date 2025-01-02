@@ -33,7 +33,7 @@ export class PostsImagesService {
     try {
       await promises.access(tempFilePath);
     } catch (error) {
-      throw new NotFoundException(ErrorCode.NOT_FOUND_IMAGE, '존재하지 않는 이미지입니다.');
+      throw new NotFoundException('존재하지 않는 이미지입니다.', ErrorCode.NOT_FOUND_IMAGE);
     }
 
     const fileName = basename(tempFilePath);

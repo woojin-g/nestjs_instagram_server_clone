@@ -6,6 +6,7 @@ import { FILTER_MAPPER } from './const/filter-mapper.const';
 import { ENV_PROTOCOL_KEY } from './const/env-keys.const';
 import { ENV_HOST_KEY } from './const/env-keys.const';
 import { ConfigService } from '@nestjs/config';
+import { ErrorCode } from './const/error.const';
 
 @Injectable()
 export class CommonService {
@@ -130,6 +131,7 @@ export class CommonService {
     if (split.length !== 2 && split.length !== 3) {
       throw new BadRequestException(
         `where 필터는 '__'로 split 했을때 길이가 2 또는 3이어야합니다 - 문제되는 키값 : ${key}`,
+        ErrorCode.BAD_REQUEST,
       )
     }
 

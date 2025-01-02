@@ -20,7 +20,7 @@ export class UsersService {
     user: Pick<UserModel, 'nickname' | 'email' | 'password'>,
   ): Promise<UserModel> {
     if (!user.nickname || !user.email || !user.password) {
-      throw new BadRequestException(ErrorCode.BAD_REQUEST, '잘못된 요청입니다.');
+      throw new BadRequestException('잘못된 요청입니다.', ErrorCode.BAD_REQUEST);
     }
 
     const emailExists = await this.usersRepository.exists({
@@ -28,8 +28,8 @@ export class UsersService {
     });
     if (emailExists) {
       throw new ConflictException(
-        ErrorCode.EMAIL_ALREADY_EXISTS,
         '이미 존재하는 이메일입니다.',
+        ErrorCode.EMAIL_ALREADY_EXISTS,
       );
     }
 
@@ -38,8 +38,8 @@ export class UsersService {
     });
     if (nicknameExists) {
       throw new ConflictException(
-        ErrorCode.NICKNAME_ALREADY_EXISTS,
         '이미 존재하는 닉네임입니다.',
+        ErrorCode.NICKNAME_ALREADY_EXISTS,
       );
     }
 

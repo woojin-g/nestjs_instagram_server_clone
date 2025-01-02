@@ -7,7 +7,7 @@ export class LogInterceptor implements NestInterceptor {
     const req = context.switchToHttp().getRequest();
     const path = req.originalUrl;
     const requestTime = new Date();
-    console.log(`[REQ] ${path} (${requestTime.toLocaleString('kr')})`);
+    console.log(`[REQ] ${req.method} ${path} (${requestTime.toLocaleString('kr')})`);
 
     return next
       // 라우트의 로직이 전부 실행된 뒤, Observable 타입의 응답을 반환한다.
@@ -19,7 +19,7 @@ export class LogInterceptor implements NestInterceptor {
           const statusCode = res.statusCode;
           const responseTime = new Date();
           const timeDiff = responseTime.getMilliseconds() - requestTime.getMilliseconds();
-          console.log(`[RES] ${path} ${statusCode} (${timeDiff}ms, ${responseTime.toLocaleString('kr')})`);
+          console.log(`[RES] ${req.method} ${path} ${statusCode} (${timeDiff}ms, ${responseTime.toLocaleString('kr')})`);
         }),
         // 응답을 변형하고자 할 때 사용
         // map((res) => { }),

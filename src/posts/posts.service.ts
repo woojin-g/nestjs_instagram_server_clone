@@ -59,7 +59,7 @@ export class PostsService {
       ...DEFAULT_POST_FIND_OPTIONS,
     });
     if (!post) {
-      throw new NotFoundException(ErrorCode.NOT_FOUND_POST, '존재하지 않는 게시글입니다.');
+      throw new NotFoundException('존재하지 않는 게시글입니다.', ErrorCode.NOT_FOUND_POST);
     }
     return post;
   }
@@ -70,7 +70,7 @@ export class PostsService {
     qr?: QueryRunner,
   ): Promise<PostModel> {
     if (!authorId || !dto.title || !dto.content) {
-      throw new BadRequestException(ErrorCode.BAD_REQUEST, '잘못된 요청입니다.');
+      throw new BadRequestException('잘못된 요청입니다.', ErrorCode.BAD_REQUEST);
     }
     const repository = this.getRepository(qr);
     const postData = repository.create({
@@ -89,14 +89,14 @@ export class PostsService {
       if (error instanceof QueryFailedError) {
         if (error.driverError.code == '23503') {
           throw new NotFoundException(
-            ErrorCode.NOT_FOUND_USER,
             '존재하지 않는 사용자입니다.',
+            ErrorCode.NOT_FOUND_USER,
           );
         }
       }
       throw new InternalServerErrorException(
-        ErrorCode.INTERNAL_SERVER_ERROR,
         '서버 오류',
+        ErrorCode.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -110,7 +110,7 @@ export class PostsService {
       ...DEFAULT_POST_FIND_OPTIONS,
     });
     if (!foundPost) {
-      throw new NotFoundException(ErrorCode.NOT_FOUND_POST, '존재하지 않는 게시글입니다.');
+      throw new NotFoundException('존재하지 않는 게시글입니다.', ErrorCode.NOT_FOUND_POST);
     }
     foundPost.title = dto.title ?? foundPost.title;
     foundPost.content = dto.content ?? foundPost.content;
@@ -124,7 +124,7 @@ export class PostsService {
       ...DEFAULT_POST_FIND_OPTIONS,
     });
     if (!foundPost) {
-      throw new NotFoundException(ErrorCode.NOT_FOUND_POST, '존재하지 않는 게시글입니다.');
+      throw new NotFoundException('존재하지 않는 게시글입니다.', ErrorCode.NOT_FOUND_POST);
     }
     await this.postsRepository.delete(id);
     return foundPost.id;

@@ -1,6 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { HttpExceptionFilter } from './common/exception-filter/http.exception-filter';
+import { LogInterceptor } from './common/interceptor/log.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -23,6 +25,10 @@ async function bootstrap() {
     // 요청에 포함된 프로퍼티 중, 데코레이터가 적용되지 않은 프로퍼티가 있으면 예외를 발생시킨다.
     forbidNonWhitelisted: true,
   }));
+
+  app.useGlobalInterceptors(new LogInterceptor());
+
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   await app.listen(process.env.PORT ?? 3000);
 }
