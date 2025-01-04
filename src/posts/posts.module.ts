@@ -13,7 +13,8 @@ import { LogMiddleware } from 'src/common/middleware/log.middleware';
 
 @Module({
   imports: [
-    // provider에 Repository를 주입
+    // 모듈 내에서 Repository 패턴에 사용할 엔티티 등록
+    // Provider에 해당 엔티티의 Repository를 주입
     TypeOrmModule.forFeature([
       PostModel,
       ImageModel,

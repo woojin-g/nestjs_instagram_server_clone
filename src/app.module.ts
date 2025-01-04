@@ -14,6 +14,9 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { PUBLIC_FOLDER_ABSOLUTE_PATH } from './common/const/path.const';
 import { ImageModel } from './common/entity/image.entity';
 import { LogMiddleware } from './common/middleware/log.middleware';
+import { ChatRoomsModule } from './chat-rooms/chat-rooms.module';
+import { ChatRoomModel } from './chat-rooms/entity/chat-rooms.entity';
+import { ChatMessageModel } from './chat-rooms/chat-messages/entity/chat-messages.entity';
 
 @Module({
   imports: [
@@ -28,17 +31,20 @@ import { LogMiddleware } from './common/middleware/log.middleware';
     }),
     // TypeORM과 NestJS를 연결
     TypeOrmModule.forRoot({
-      // 데이터베이스 타입
+      // 데이터베이스 정보 설정
       type: 'postgres',
       host: process.env.DB_HOST,
       port: parseInt(process.env.DB_PORT),
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
+      // 사용할 모든 엔티티를 등록해야 함
       entities: [
         UserModel,
         PostModel,
         ImageModel,
+        ChatRoomModel,
+        ChatMessageModel,
       ],
       // ORM이 데이터베이스 스키마를 자동으로 동기화
       // ! 개발 환경에서만 사용
@@ -48,6 +54,7 @@ import { LogMiddleware } from './common/middleware/log.middleware';
     PostsModule,
     AuthModule,
     CommonModule,
+    ChatRoomsModule,
   ],
   controllers: [AppController],
   providers: [

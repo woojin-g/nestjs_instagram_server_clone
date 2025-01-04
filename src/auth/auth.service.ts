@@ -46,15 +46,14 @@ export class AuthService {
     const existingUser = await this.usersService.getUserByEmail(user.email);
     if (!existingUser) {
       throw new UnauthorizedException(
-        '존재하지 않는 사용자입니다.',
         ErrorCode.UNAUTHORIZED,
+        '존재하지 않는 사용자입니다.',
       );
     }
     const isPassed = await bcrypt.compare(user.password, existingUser.password);
     if (!isPassed) {
       throw new UnauthorizedException(
-        '비밀번호가 일치하지 않습니다.',
-        ErrorCode.WRONG_PASSWORD,
+        ErrorCode.UNAUTHORIZED__WRONG_PASSWORD,
       );
     }
     return existingUser;
@@ -89,8 +88,7 @@ export class AuthService {
     const splitToken = rawToken.split(' ');
     if (splitToken.length !== 2 || tokenPrefix.valueOf() !== splitToken[0]) {
       throw new UnauthorizedException(
-        '잘못된 토큰 형식입니다.',
-        ErrorCode.UNAUTHORIZED,
+        ErrorCode.UNAUTHORIZED__INVALID_TOKEN,
       );
     }
     return splitToken[1];
@@ -101,8 +99,7 @@ export class AuthService {
     const split = decoded.split(':');
     if (split.length != 2) {
       throw new UnauthorizedException(
-        '잘못된 토큰 형식입니다.',
-        ErrorCode.UNAUTHORIZED,
+        ErrorCode.UNAUTHORIZED__INVALID_TOKEN,
       );
     }
     return {
@@ -121,7 +118,9 @@ export class AuthService {
     }
     catch (e) {
       if (e instanceof JsonWebTokenError) {
-        throw new UnauthorizedException('잘못된 토큰입니다.', ErrorCode.UNAUTHORIZED);
+        throw new UnauthorizedException(
+          ErrorCode.UNAUTHORIZED__INVALID_TOKEN,
+        );
       }
     }
     // TODO: 만료 여부 확인
@@ -131,7 +130,9 @@ export class AuthService {
   async rotateToken(refreshToken: string, tokenTypeToRotate: TokenType): Promise<string> {
     const decoded = this.jwtService.decode(refreshToken);
     if (!decoded || decoded.type !== 'refresh') {
-      throw new UnauthorizedException('잘못된 토큰입니다.', ErrorCode.UNAUTHORIZED);
+      throw new UnauthorizedException(
+        ErrorCode.UNAUTHORIZED__INVALID_TOKEN,
+      );
     }
     return await this.signToken(decoded, tokenTypeToRotate);
   }

@@ -130,9 +130,9 @@ export class CommonService {
 
     if (split.length !== 2 && split.length !== 3) {
       throw new BadRequestException(
+        ErrorCode.BAD_REQUEST__INVALID_FILTER,
         `where 필터는 '__'로 split 했을때 길이가 2 또는 3이어야합니다 - 문제되는 키값 : ${key}`,
-        ErrorCode.BAD_REQUEST,
-      )
+      );
     }
 
     /**

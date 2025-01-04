@@ -7,8 +7,8 @@ export const User = createParamDecorator((data: keyof UserModel | undefined, con
   const user = req.user as UserModel;
   if (!user) {
     throw new InternalServerErrorException(
-      'User 데코레이터를 사용하려면 AccessTokenGuard를 사용해야 합니다.',
       ErrorCode.INTERNAL_SERVER_ERROR,
+      'User 데코레이터를 사용하려면 AccessTokenGuard를 사용해야 합니다.',
     );
   }
 

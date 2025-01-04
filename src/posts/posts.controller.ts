@@ -50,9 +50,9 @@ export class PostsController {
   @Get()
   @UseGuards(AccessTokenGuard)
   getPosts(
-    @Query() body: PostsPaginationRequestDto,
+    @Query() dto: PostsPaginationRequestDto,
   ): Promise<PagePaginationResponseDto<PostModel> | CursorPaginationResponseDto<PostModel>> {
-    return this.postsService.paginatePosts(body);
+    return this.postsService.paginatePosts(dto);
   }
 
   @Get(':id')
