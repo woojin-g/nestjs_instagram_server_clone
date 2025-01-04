@@ -8,6 +8,8 @@ import { CommonModule } from 'src/common/common.module';
 import { ChatMessagesService } from './chat-messages/chat-messages.service';
 import { ChatMessageModel } from './chat-messages/entity/chat-messages.entity';
 import { ChatMessagesController } from './chat-messages/chat-messages.controller';
+import { AuthModule } from 'src/auth/auth.module';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { ChatMessagesController } from './chat-messages/chat-messages.controller
       ChatMessageModel,
     ]),
     CommonModule,
+    AuthModule,
+    UsersModule,
   ],
   controllers: [
     ChatRoomsController,

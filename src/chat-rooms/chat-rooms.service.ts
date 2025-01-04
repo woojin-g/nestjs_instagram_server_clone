@@ -6,8 +6,8 @@ import { CreateChatRoomDto } from './dto/create-chat-room.dto';
 import { CommonService } from 'src/common/common.service';
 import { ChatRoomsPaginationRequestDto } from './dto/chat-rooms-pagination.dto';
 import { CursorPaginationResponseDto, PagePaginationResponseDto } from 'src/common/dto/base-pagination.dto';
-import { WsException } from '@nestjs/websockets';
 import { ErrorCode } from 'src/common/const/error.const';
+import { CustomException } from 'src/common/exception-filter/custom-exception';
 
 @Injectable()
 export class ChatRoomsService {
@@ -47,10 +47,10 @@ export class ChatRoomsService {
 
   async checkIfChatRoomExistsAndThrow(chatRoomId: number): Promise<void> {
     if (!(await this.checkIfChatRoomExists(chatRoomId))) {
-      throw new WsException({
-        message: `존재하지 않는 채팅방입니다 - chatRoomId: ${chatRoomId}`,
-        error: ErrorCode.NOT_FOUND__CHAT_ROOM,
-      });
+      throw new CustomException(
+        ErrorCode.NOT_FOUND__CHAT_ROOM,
+        `존재하지 않는 채팅방입니다 - chatRoomId: ${chatRoomId}`,
+      );
     }
   }
 }

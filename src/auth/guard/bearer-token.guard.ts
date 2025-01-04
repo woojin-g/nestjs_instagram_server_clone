@@ -3,6 +3,7 @@ import { AuthService } from "../auth.service";
 import { TokenPrefix, TokenType } from "../const/auth.const";
 import { UsersService } from "src/users/users.service";
 import { ErrorCode } from "src/common/const/error.const";
+import { CustomException } from "src/common/exception-filter/custom-exception";
 
 @Injectable()
 export class BearerTokenGuard implements CanActivate {
@@ -15,10 +16,7 @@ export class BearerTokenGuard implements CanActivate {
     const req = context.switchToHttp().getRequest();
     const rawToken = req.headers['authorization'];
     if (!rawToken) {
-      throw new UnauthorizedException(
-        ErrorCode.UNAUTHORIZED__NO_TOKEN,
-        '토큰이 없습니다.',
-      );
+      throw new CustomException(ErrorCode.UNAUTHORIZED__NO_TOKEN);
     }
 
     const token = this.authService.extractTokenFromHeader(rawToken, TokenPrefix.BEARER);
@@ -39,7 +37,7 @@ export class AccessTokenGuard extends BearerTokenGuard {
     await super.canActivate(context);
     const req = context.switchToHttp().getRequest();
     if (req.tokenType !== TokenType.ACCESS) {
-      throw new UnauthorizedException(
+      throw new CustomException(
         ErrorCode.UNAUTHORIZED__INVALID_TOKEN,
         '액세스 토큰이 아닙니다.',
       );
@@ -54,13 +52,13 @@ export class RefreshTokenGuard extends BearerTokenGuard {
     await super.canActivate(context);
     const req = context.switchToHttp().getRequest();
     if (req.tokenType !== TokenType.REFRESH) {
-      throw new UnauthorizedException(
+      throw new CustomException(
         ErrorCode.UNAUTHORIZED__INVALID_TOKEN,
         '리프레시 토큰이 아닙니다.',
       );
     }
     if (req.token !== req.user.refreshToken) {
-      throw new UnauthorizedException(
+      throw new CustomException(
         ErrorCode.UNAUTHORIZED__INVALID_TOKEN,
         '리프레시 토큰이 일치하지 않습니다.',
       );

@@ -2,6 +2,7 @@ export enum ErrorCode {
   INTERNAL_SERVER_ERROR = 'INTERNAL_SERVER_ERROR',
 
   UNAUTHORIZED = 'UNAUTHORIZED',
+  UNAUTHORIZED__NO_USER = 'UNAUTHORIZED__NO_USER',
   UNAUTHORIZED__NO_TOKEN = 'UNAUTHORIZED__NO_TOKEN',
   UNAUTHORIZED__WRONG_PASSWORD = 'UNAUTHORIZED__WRONG_PASSWORD',
   UNAUTHORIZED__INVALID_TOKEN = 'UNAUTHORIZED__INVALID_TOKEN',
@@ -21,26 +22,3 @@ export enum ErrorCode {
   BAD_REQUEST__STRING_TOO_SHORT = 'BAD_REQUEST__STRING_TOO_SHORT',
   BAD_REQUEST__INVALID_FILTER = 'BAD_REQUEST__INVALID_FILTER',
 }
-
-export const errorMessageMap = {
-  [ErrorCode.INTERNAL_SERVER_ERROR]: '서버 오류',
-
-  [ErrorCode.UNAUTHORIZED]: '인증되지 않은 사용자입니다.',
-  [ErrorCode.UNAUTHORIZED__NO_TOKEN]: '토큰이 없습니다.',
-  [ErrorCode.UNAUTHORIZED__WRONG_PASSWORD]: '비밀번호가 틀렸습니다.',
-  [ErrorCode.UNAUTHORIZED__INVALID_TOKEN]: '잘못된 토큰입니다.',
-
-  [ErrorCode.CONFLICT]: '중복된 데이터가 존재합니다.',
-  [ErrorCode.CONFLICT__NICKNAME_ALREADY_EXISTS]: '이미 존재하는 닉네임입니다.',
-  [ErrorCode.CONFLICT__EMAIL_ALREADY_EXISTS]: '이미 존재하는 이메일입니다.',
-
-  [ErrorCode.NOT_FOUND]: '존재하지 않는 데이터입니다.',
-  [ErrorCode.NOT_FOUND__USER]: '존재하지 않는 사용자입니다.',
-  [ErrorCode.NOT_FOUND__POST]: '존재하지 않는 게시글입니다.',
-  [ErrorCode.NOT_FOUND__IMAGE]: '존재하지 않는 이미지입니다.',
-  [ErrorCode.NOT_FOUND__CHAT_ROOM]: '존재하지 않는 채팅방입니다.',
-
-  [ErrorCode.BAD_REQUEST]: '잘못된 요청입니다.',
-  [ErrorCode.BAD_REQUEST__STRING_TOO_LONG]: '너무 긴 문자열입니다.',
-  [ErrorCode.BAD_REQUEST__STRING_TOO_SHORT]: '너무 짧은 문자열입니다.',
-};

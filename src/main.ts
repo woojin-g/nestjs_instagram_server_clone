@@ -9,6 +9,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // DTO 사용을 위해 class-validator를 전역적으로 적용한다.
+  // ! 현재 NestJS 버전의 경우, 아래에 적용한 ValidationPipe가 SocketIO 통신 시에는 적용되지 않는다. 따라서, 개별 호출 마다 적용해야 한다.
   app.useGlobalPipes(new ValidationPipe({
     // DTO로 변환 시 각 프로퍼티의 타입 변환을 허용한다.
     transform: true,

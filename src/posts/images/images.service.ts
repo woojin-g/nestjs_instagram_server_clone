@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { QueryRunner, Repository } from "typeorm";
 import { ImageModel } from "src/common/entity/image.entity";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -8,6 +8,7 @@ import { POSTS_FOLDER_ABSOLUTE_PATH, TEMP_FOLDER_ABSOLUTE_PATH } from "src/commo
 import { join } from "path";
 import { promises } from "fs";
 import { ErrorCode } from "src/common/const/error.const";
+import { CustomException } from "src/common/exception-filter/custom-exception";
 
 @Injectable()
 export class PostsImagesService {
@@ -33,10 +34,7 @@ export class PostsImagesService {
     try {
       await promises.access(tempFilePath);
     } catch (error) {
-      throw new NotFoundException(
-        ErrorCode.NOT_FOUND__IMAGE,
-        '존재하지 않는 이미지입니다.',
-      );
+      throw new CustomException(ErrorCode.NOT_FOUND__IMAGE);
     }
 
     const fileName = basename(tempFilePath);

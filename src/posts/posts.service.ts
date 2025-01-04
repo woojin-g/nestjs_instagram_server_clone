@@ -22,6 +22,7 @@ import { promises } from 'fs';
 import { CreatePostImageDto } from './images/dto/create-image.dto';
 import { ImageModel } from 'src/common/entity/image.entity';
 import { DEFAULT_POST_FIND_OPTIONS } from './const/default-post-find-options.const';
+import { CustomException } from 'src/common/exception-filter/custom-exception';
 
 @Injectable()
 export class PostsService {
@@ -59,7 +60,7 @@ export class PostsService {
       ...DEFAULT_POST_FIND_OPTIONS,
     });
     if (!post) {
-      throw new NotFoundException(
+      throw new CustomException(
         ErrorCode.NOT_FOUND__POST,
         '존재하지 않는 게시글입니다.',
       );
@@ -73,7 +74,9 @@ export class PostsService {
     qr?: QueryRunner,
   ): Promise<PostModel> {
     if (!authorId || !dto.title || !dto.content) {
-      throw new BadRequestException('잘못된 요청입니다.');
+      throw new CustomException(
+        ErrorCode.BAD_REQUEST,
+      );
     }
     const repository = this.getRepository(qr);
     const postData = repository.create({
@@ -91,16 +94,13 @@ export class PostsService {
       console.log(error);
       if (error instanceof QueryFailedError) {
         if (error.driverError.code == '23503') {
-          throw new NotFoundException(
+          throw new CustomException(
             ErrorCode.NOT_FOUND__USER,
             '존재하지 않는 사용자입니다.',
           );
         }
       }
-      throw new InternalServerErrorException(
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        '서버 오류',
-      );
+      throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -113,10 +113,7 @@ export class PostsService {
       ...DEFAULT_POST_FIND_OPTIONS,
     });
     if (!foundPost) {
-      throw new NotFoundException(
-        ErrorCode.NOT_FOUND__POST,
-        '존재하지 않는 게시글입니다.',
-      );
+      throw new CustomException(ErrorCode.NOT_FOUND__POST);
     }
     foundPost.title = dto.title ?? foundPost.title;
     foundPost.content = dto.content ?? foundPost.content;
@@ -130,10 +127,7 @@ export class PostsService {
       ...DEFAULT_POST_FIND_OPTIONS,
     });
     if (!foundPost) {
-      throw new NotFoundException(
-        ErrorCode.NOT_FOUND__POST,
-        '존재하지 않는 게시글입니다.',
-      );
+      throw new CustomException(ErrorCode.NOT_FOUND__POST);
     }
     await this.postsRepository.delete(id);
     return foundPost.id;

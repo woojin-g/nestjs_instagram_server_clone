@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { BasePaginationRequestDto, CursorPaginationResponseDto, PagePaginationResponseDto } from './dto/base-pagination.dto';
 import { BaseModel } from './entity/base.entity';
 import { FindManyOptions, FindOptionsOrder, FindOptionsWhere, Repository } from 'typeorm';
@@ -7,6 +7,7 @@ import { ENV_PROTOCOL_KEY } from './const/env-keys.const';
 import { ENV_HOST_KEY } from './const/env-keys.const';
 import { ConfigService } from '@nestjs/config';
 import { ErrorCode } from './const/error.const';
+import { CustomException } from './exception-filter/custom-exception';
 
 @Injectable()
 export class CommonService {
@@ -129,7 +130,7 @@ export class CommonService {
     const split = key.split('__');
 
     if (split.length !== 2 && split.length !== 3) {
-      throw new BadRequestException(
+      throw new CustomException(
         ErrorCode.BAD_REQUEST__INVALID_FILTER,
         `where 필터는 '__'로 split 했을때 길이가 2 또는 3이어야합니다 - 문제되는 키값 : ${key}`,
       );

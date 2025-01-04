@@ -1,13 +1,10 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserModel } from './entity/users.entity';
 import { Repository } from 'typeorm';
 import { ErrorCode } from 'src/common/const/error.const';
 import { TokenType } from 'src/auth/const/auth.const';
+import { CustomException } from 'src/common/exception-filter/custom-exception';
 
 @Injectable()
 export class UsersService {
@@ -20,30 +17,21 @@ export class UsersService {
     user: Pick<UserModel, 'nickname' | 'email' | 'password'>,
   ): Promise<UserModel> {
     if (!user.nickname || !user.email || !user.password) {
-      throw new BadRequestException(
-        ErrorCode.BAD_REQUEST,
-        '잘못된 요청입니다.',
-      );
+      throw new CustomException(ErrorCode.BAD_REQUEST);
     }
 
     const emailExists = await this.usersRepository.exists({
       where: { email: user.email },
     });
     if (emailExists) {
-      throw new ConflictException(
-        ErrorCode.CONFLICT__EMAIL_ALREADY_EXISTS,
-        '이미 존재하는 이메일입니다.',
-      );
+      throw new CustomException(ErrorCode.CONFLICT__EMAIL_ALREADY_EXISTS);
     }
 
     const nicknameExists = await this.usersRepository.exists({
       where: { nickname: user.nickname },
     });
     if (nicknameExists) {
-      throw new ConflictException(
-        ErrorCode.CONFLICT__NICKNAME_ALREADY_EXISTS,
-        '이미 존재하는 닉네임입니다.',
-      );
+      throw new CustomException(ErrorCode.CONFLICT__NICKNAME_ALREADY_EXISTS);
     }
 
     const userModel = this.usersRepository.create({

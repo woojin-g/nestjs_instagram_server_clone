@@ -1,17 +1,22 @@
-import { BadRequestException, Controller, Get, HttpStatus, Param, ParseIntPipe, Query } from "@nestjs/common";
+import { Controller, Get, Param, ParseIntPipe, Query, UseGuards } from "@nestjs/common";
 import { ChatMessagesService } from "./chat-messages.service";
 import { ChatMessagesPaginationRequestDto } from "./dto/chat-messages-pagination.dto";
-import { ErrorCode } from "src/common/const/error.const";
+import { AccessTokenGuard } from "src/auth/guard/bearer-token.guard";
+import { AuthService } from "src/auth/auth.service";
+import { UsersService } from "src/users/users.service";
 
-@Controller('chat-rooms/:chatRoomId/messages')
+@Controller('chat-rooms/:roomId/messages')
 export class ChatMessagesController {
   constructor(
     private readonly chatMessagesService: ChatMessagesService,
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
   ) { }
 
   @Get()
+  @UseGuards(AccessTokenGuard)
   getChatMessages(
-    @Param('chat-room-id', ParseIntPipe) chatRoomId: number,
+    @Param('roomId', ParseIntPipe) chatRoomId: number,
     @Query() dto: ChatMessagesPaginationRequestDto,
   ) {
     return this.chatMessagesService.paginateChatMessages(
