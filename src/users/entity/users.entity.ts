@@ -1,13 +1,14 @@
 import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm';
-import { UserRole } from '../const/users.const';
+import { UserRoleType } from '../const/users.const';
 import { PostModel } from 'src/posts/entity/posts.entity';
 import { BaseModel } from 'src/common/entity/base.entity';
 import { IsEmail, IsNotEmpty, Length } from 'class-validator';
 import { IsString } from 'class-validator';
-import { emailValidationMessage, lengthValidationMessage, notEmptyValidationMessage, stringValidationMessage } from 'src/common/validation-message/validation-message';
+import { emailValidationMessage, lengthValidationMessage, notEmptyValidationMessage, stringValidationMessage } from 'src/common/validation-pipe/validation-pipe-message';
 import { Exclude, Expose } from 'class-transformer';
 import { ChatRoomModel } from 'src/chat-rooms/entity/chat-rooms.entity';
 import { ChatMessageModel } from 'src/chat-rooms/chat-messages/entity/chat-messages.entity';
+import { CommentModel } from 'src/posts/comments/entity/comments.entity';
 
 // class-validator와 class-transformer는 Plain Object -> DTO 변환에 사용한다.
 
@@ -45,13 +46,16 @@ export class UserModel extends BaseModel {
 
   @Column({
     type: 'enum',
-    enum: UserRole,
-    default: UserRole.USER,
+    enum: UserRoleType,
+    default: UserRoleType.USER,
   })
-  role: UserRole;
+  role: UserRoleType;
 
   @OneToMany(() => PostModel, (post) => post.author)
   posts: PostModel[];
+
+  @OneToMany(() => CommentModel, (comment) => comment.author)
+  comments: CommentModel[];
 
   @ManyToMany(() => ChatRoomModel, (chatRoom) => chatRoom.users)
   @JoinTable()

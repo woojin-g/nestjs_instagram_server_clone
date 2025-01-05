@@ -1,5 +1,5 @@
 import { IsNumber } from "class-validator";
-import { numberValidationMessage } from "src/common/validation-message/validation-message";
+import { numberValidationMessage } from "src/common/validation-pipe/validation-pipe-message";
 
 export class EnterChatRoomsDto {
   @IsNumber({}, { each: true, message: numberValidationMessage })

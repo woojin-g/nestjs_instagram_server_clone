@@ -74,7 +74,7 @@ export class AuthService {
 
     const token = this.jwtService.sign(payload, {
       secret: this.configService.get(ENV_JWT_SECRET_KEY),
-      expiresIn: tokenType === TokenType.REFRESH ? 3600 : 300,
+      expiresIn: tokenType === TokenType.REFRESH ? '10 days' : '1d',
     });
     await this.usersService.saveToken(user, token, tokenType);
     return token;
@@ -112,6 +112,7 @@ export class AuthService {
       if (e instanceof JsonWebTokenError) {
         throw new CustomException(ErrorCode.UNAUTHORIZED__INVALID_TOKEN);
       }
+      throw e;
     }
     // TODO: 만료 여부 확인
     return payload;

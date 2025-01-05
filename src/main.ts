@@ -1,36 +1,17 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { BadRequestException, HttpStatus, ValidationPipe } from '@nestjs/common';
-import { HttpExceptionFilter } from './common/exception-filter/http.exception-filter';
+import { ValidationPipe } from '@nestjs/common';
+import { RestApiExceptionFilter } from './common/exception-filter/rest-api.exception-filter';
 import { LogInterceptor } from './common/interceptor/log.interceptor';
-import { ErrorCode } from './common/const/error.const';
+import { defaultValidationPipeOptions } from './common/validation-pipe/validation-pipe-options';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // DTO 사용을 위해 class-validator를 전역적으로 적용한다.
-  // ! 현재 NestJS 버전의 경우, 아래에 적용한 ValidationPipe가 SocketIO 통신 시에는 적용되지 않는다. 따라서, 개별 호출 마다 적용해야 한다.
-  app.useGlobalPipes(new ValidationPipe({
-    // DTO로 변환 시 각 프로퍼티의 타입 변환을 허용한다.
-    transform: true,
-    transformOptions: {
-      // 타입 변환을 자동으로 적용한다.
-      // 이 옵션 없이, 각 프로퍼티별로 타입변환을 적용할 수도 있다.
-      // ex.
-      //   - @Type(() => Number)
-      //   - @Transform(({ value }) => Number(value))
-      enableImplicitConversion: true,
-    },
-    // 요청에 포함된 프로퍼티 중, 데코레이터가 적용되지 않은 프로퍼티는 제거한다.
-    // 즉, 서버에서 의도하지 않은 프로퍼티를 클라이언트가 전달하는 것을 방지한다.
-    whitelist: true,
-    // 요청에 포함된 프로퍼티 중, 데코레이터가 적용되지 않은 프로퍼티가 있으면 예외를 발생시킨다.
-    forbidNonWhitelisted: true,
-  }));
-
+  // DTO 사용을 위해 class-validator를 전역적으로 적용한다. (REST API 한정)
+  app.useGlobalPipes(new ValidationPipe(defaultValidationPipeOptions));
   app.useGlobalInterceptors(new LogInterceptor());
-
-  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalFilters(new RestApiExceptionFilter());
 
   await app.listen(process.env.PORT ?? 3000);
 }

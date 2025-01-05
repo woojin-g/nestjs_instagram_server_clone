@@ -14,7 +14,7 @@ export enum ImageModelType {
 @Entity()
 export class ImageModel extends BaseModel {
   // 프론트엔드에서 이미지 순서 지정 가능
-  @Column({ default: 0 })
+  @Column({ default: 0 }) // 데이터베이스 레벨의 기본값 설정 (데이터베이스 삽입 시 적용됨)
   @IsInt()
   @IsOptional()
   order: number;

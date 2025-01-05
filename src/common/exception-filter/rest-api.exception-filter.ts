@@ -4,7 +4,7 @@ import { ErrorCode } from "../const/error.const";
 
 // HttpException 예외를 처리하는 필터
 @Catch(HttpException)
-export class HttpExceptionFilter implements ExceptionFilter {
+export class RestApiExceptionFilter implements ExceptionFilter {
   catch(exception: HttpException, host: ArgumentsHost) {
     const context = host.switchToHttp();
     const request = context.getRequest();

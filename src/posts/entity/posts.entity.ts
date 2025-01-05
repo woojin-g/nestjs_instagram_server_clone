@@ -9,8 +9,9 @@ import {
 } from 'typeorm';
 import { BaseModel } from 'src/common/entity/base.entity';
 import { IsNotEmpty, IsString } from 'class-validator';
-import { notEmptyValidationMessage, stringValidationMessage } from 'src/common/validation-message/validation-message';
+import { notEmptyValidationMessage, stringValidationMessage } from 'src/common/validation-pipe/validation-pipe-message';
 import { ImageModel } from 'src/common/entity/image.entity';
+import { CommentModel } from '../comments/entity/comments.entity';
 
 @Entity()
 export class PostModel extends BaseModel {
@@ -56,6 +57,9 @@ export class PostModel extends BaseModel {
 
   @Column()
   likeCount: number;
+
+  @OneToMany(() => CommentModel, (comment) => comment.post)
+  comments: CommentModel[];
 
   @Column()
   commentCount: number;

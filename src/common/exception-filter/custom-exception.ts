@@ -35,6 +35,10 @@ export class CustomException extends HttpException {
       message: message ?? errorMessageMap[errorCode],
     }, errorCodeStatusMap[errorCode]);
   }
+
+  toErrorResponse() {
+    return transformHttpExceptionToErrorResponse(this);
+  }
 }
 
 export const httpExceptionErrorCodeMap = {
@@ -58,9 +62,13 @@ export const errorMessageMap = {
   [ErrorCode.CONFLICT__NICKNAME_ALREADY_EXISTS]: '이미 존재하는 닉네임입니다.',
   [ErrorCode.CONFLICT__EMAIL_ALREADY_EXISTS]: '이미 존재하는 이메일입니다.',
 
+  [ErrorCode.FORBIDDEN]: '권한이 없습니다.',
+  [ErrorCode.FORBIDDEN__NOT_AUTHOR]: '작성자가 아닙니다.',
+
   [ErrorCode.NOT_FOUND]: '존재하지 않는 데이터입니다.',
   [ErrorCode.NOT_FOUND__USER]: '존재하지 않는 사용자입니다.',
   [ErrorCode.NOT_FOUND__POST]: '존재하지 않는 게시글입니다.',
+  [ErrorCode.NOT_FOUND__COMMENT]: '존재하지 않는 댓글입니다.',
   [ErrorCode.NOT_FOUND__IMAGE]: '존재하지 않는 이미지입니다.',
   [ErrorCode.NOT_FOUND__CHAT_ROOM]: '존재하지 않는 채팅방입니다.',
 
@@ -82,9 +90,13 @@ const errorCodeStatusMap = {
   [ErrorCode.CONFLICT__NICKNAME_ALREADY_EXISTS]: HttpStatus.CONFLICT,
   [ErrorCode.CONFLICT__EMAIL_ALREADY_EXISTS]: HttpStatus.CONFLICT,
 
+  [ErrorCode.FORBIDDEN]: HttpStatus.FORBIDDEN,
+  [ErrorCode.FORBIDDEN__NOT_AUTHOR]: HttpStatus.FORBIDDEN,
+
   [ErrorCode.NOT_FOUND]: HttpStatus.NOT_FOUND,
   [ErrorCode.NOT_FOUND__USER]: HttpStatus.NOT_FOUND,
   [ErrorCode.NOT_FOUND__POST]: HttpStatus.NOT_FOUND,
+  [ErrorCode.NOT_FOUND__COMMENT]: HttpStatus.NOT_FOUND,
   [ErrorCode.NOT_FOUND__IMAGE]: HttpStatus.NOT_FOUND,
   [ErrorCode.NOT_FOUND__CHAT_ROOM]: HttpStatus.NOT_FOUND,
 

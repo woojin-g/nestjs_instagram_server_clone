@@ -23,6 +23,7 @@ import { LogMiddleware } from 'src/common/middleware/log.middleware';
     UsersModule,
     CommonModule,
   ],
+  exports: [PostsService],
   controllers: [PostsController],
   providers: [PostsService, PostsImagesService],
 })

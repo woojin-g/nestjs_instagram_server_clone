@@ -53,6 +53,11 @@ export class PostsService {
     );
   }
 
+  checkPostExistsById(id: number, qr?: QueryRunner): Promise<boolean> {
+    const repository = this.getRepository(qr);
+    return repository.existsBy({ id });
+  }
+
   async getPostById(id: number, qr?: QueryRunner): Promise<PostModel> {
     const repository = this.getRepository(qr);
     const post = await repository.findOne({
@@ -60,10 +65,7 @@ export class PostsService {
       ...DEFAULT_POST_FIND_OPTIONS,
     });
     if (!post) {
-      throw new CustomException(
-        ErrorCode.NOT_FOUND__POST,
-        '존재하지 않는 게시글입니다.',
-      );
+      throw new CustomException(ErrorCode.NOT_FOUND__POST);
     }
     return post;
   }
@@ -105,32 +107,22 @@ export class PostsService {
   }
 
   async updatePost(
-    id: number,
+    postId: number,
     dto: UpdatePostDto,
   ): Promise<PostModel> {
-    const foundPost = await this.postsRepository.findOne({
-      where: { id },
-      ...DEFAULT_POST_FIND_OPTIONS,
-    });
-    if (!foundPost) {
-      throw new CustomException(ErrorCode.NOT_FOUND__POST);
-    }
+    const foundPost = await this.getPostById(postId);
     foundPost.title = dto.title ?? foundPost.title;
     foundPost.content = dto.content ?? foundPost.content;
-    const updatedPost = await this.postsRepository.save(foundPost);
-    return updatedPost;
+    return this.postsRepository.save(foundPost);
   }
 
-  async deletePost(id: number): Promise<number> {
-    const foundPost = await this.postsRepository.findOne({
-      where: { id },
-      ...DEFAULT_POST_FIND_OPTIONS,
-    });
-    if (!foundPost) {
+  async deletePost(postId: number): Promise<number> {
+    const exists = await this.checkPostExistsById(postId);
+    if (!exists) {
       throw new CustomException(ErrorCode.NOT_FOUND__POST);
     }
-    await this.postsRepository.delete(id);
-    return foundPost.id;
+    await this.postsRepository.delete(postId);
+    return postId;
   }
 
   async generatePosts(userId: number) {

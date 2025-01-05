@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -15,7 +14,6 @@ import {
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { PostModel } from './entity/posts.entity';
-import { AccessTokenGuard } from 'src/auth/guard/bearer-token.guard';
 import { User } from 'src/users/decorator/user.decorator';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
@@ -24,11 +22,11 @@ import { CursorPaginationResponseDto, PagePaginationResponseDto } from 'src/comm
 import { ImageModelType } from 'src/common/entity/image.entity';
 import { DataSource, QueryRunner as QR } from 'typeorm';
 import { PostsImagesService } from './images/images.service';
-import { LogInterceptor } from 'src/common/interceptor/log.interceptor';
 import { TransactionInterceptor } from 'src/common/interceptor/transaction.interceptor';
 import { QueryRunner } from 'src/common/decorator/query-runner.decorator';
-import { HttpExceptionFilter } from 'src/common/exception-filter/http.exception-filter';
-import { ErrorCode } from 'src/common/const/error.const';
+import { UserRoleType } from 'src/users/const/users.const';
+import { UserRole } from 'src/users/decorator/user-role.decorator';
+import { IsPublic } from 'src/common/decorator/is-public.decorator';
 
 @Controller('posts')
 export class PostsController {
@@ -48,7 +46,7 @@ export class PostsController {
   ) { }
 
   @Get()
-  @UseGuards(AccessTokenGuard)
+  @IsPublic() // 액세스 토큰 없이 접근 가능
   getPosts(
     @Query() dto: PostsPaginationRequestDto,
   ): Promise<PagePaginationResponseDto<PostModel> | CursorPaginationResponseDto<PostModel>> {
@@ -56,7 +54,7 @@ export class PostsController {
   }
 
   @Get(':id')
-  @UseGuards(AccessTokenGuard)
+  @IsPublic() // 액세스 토큰 없이 접근 가능
   getPostById(
     // Pipe는 Injectable 이므로 자동으로 주입됨
     @Param('id', ParseIntPipe)
@@ -66,7 +64,6 @@ export class PostsController {
   }
 
   @Post()
-  @UseGuards(AccessTokenGuard)
   @UseInterceptors(TransactionInterceptor)
   async postPosts(
     @QueryRunner() queryRunner: QR,
@@ -97,22 +94,22 @@ export class PostsController {
   }
 
   @Patch(':id')
-  @UseGuards(AccessTokenGuard)
   patchPosts(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) postId: number,
     @Body() body: UpdatePostDto,
   ): Promise<PostModel> {
-    return this.postsService.updatePost(id, body);
+    return this.postsService.updatePost(postId, body);
   }
 
   @Delete(':id')
-  @UseGuards(AccessTokenGuard)
-  deletePosts(@Param('id', ParseIntPipe) id: number): Promise<number> {
-    return this.postsService.deletePost(id);
+  @UserRole(UserRoleType.ADMIN) // Amin 권한인 경우에 삭제 가능
+  deletePosts(
+    @Param('id', ParseIntPipe) postId: number,
+  ): Promise<number> {
+    return this.postsService.deletePost(postId);
   }
 
   @Post('random')
-  @UseGuards(AccessTokenGuard)
   async postRandomPosts(
     @User('id') userId: number,
   ): Promise<boolean> {

@@ -16,21 +16,31 @@ export class ChatMessagesService {
   ) { }
 
   paginateChatMessages(
+    chatRoomId: number,
     dto: ChatMessagesPaginationRequestDto,
-    overrideFindOptions?: FindManyOptions<ChatMessageModel>,
   ): Promise<PagePaginationResponseDto<ChatMessageModel> | CursorPaginationResponseDto<ChatMessageModel>> {
     return this.commonService.paginate(
       dto,
       this.chatMessagesRepository,
-      overrideFindOptions,
-      'chat-messages',
+      {
+        where: {
+          chatRoom: { id: chatRoomId },
+        },
+        relations: {
+          author: true,
+        }
+      },
+      `chat-rooms/${chatRoomId}/messages`,
     );
   }
 
-  async createMessage(dto: CreateChatMessageDto): Promise<ChatMessageModel> {
+  async createMessage(
+    dto: CreateChatMessageDto,
+    authorId: number,
+  ): Promise<ChatMessageModel> {
     const message = await this.chatMessagesRepository.save({
       chatRoom: { id: dto.chatRoomId },
-      author: { id: dto.authorId },
+      author: { id: authorId },
       message: dto.message,
     });
 

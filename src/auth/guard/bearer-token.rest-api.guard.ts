@@ -1,12 +1,14 @@
-import { CanActivate, ExecutionContext, HttpException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
 import { AuthService } from "../auth.service";
 import { TokenPrefix, TokenType } from "../const/auth.const";
 import { UsersService } from "src/users/users.service";
 import { ErrorCode } from "src/common/const/error.const";
 import { CustomException } from "src/common/exception-filter/custom-exception";
+import { IS_PUBLIC_KEY } from "src/common/decorator/is-public.decorator";
 
 @Injectable()
-export class BearerTokenGuard implements CanActivate {
+class BearerTokenRestApiGuard implements CanActivate {
   constructor(
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
@@ -21,7 +23,6 @@ export class BearerTokenGuard implements CanActivate {
 
     const token = this.authService.extractTokenFromHeader(rawToken, TokenPrefix.BEARER);
     const payload = this.authService.verifyToken(token);
-
     const user = await this.usersService.getUserByEmail(payload.email);
     req.token = token;
     req.tokenType = payload.type;
@@ -32,8 +33,29 @@ export class BearerTokenGuard implements CanActivate {
 }
 
 @Injectable()
-export class AccessTokenGuard extends BearerTokenGuard {
+export class AccessTokenRestApiGuard extends BearerTokenRestApiGuard {
+  constructor(
+    authService: AuthService,
+    usersService: UsersService,
+    private readonly reflector: Reflector,
+  ) {
+    super(authService, usersService);
+  }
+
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(
+      IS_PUBLIC_KEY,
+      [
+        context.getHandler(),
+        context.getClass(),
+      ],
+    );
+
+    // @IsPublic() 데코레이터가 적용된 API는 토큰 검증을 건너뛴다.
+    if (isPublic) {
+      return true;
+    }
+
     await super.canActivate(context);
     const req = context.switchToHttp().getRequest();
     if (req.tokenType !== TokenType.ACCESS) {
@@ -47,10 +69,11 @@ export class AccessTokenGuard extends BearerTokenGuard {
 }
 
 @Injectable()
-export class RefreshTokenGuard extends BearerTokenGuard {
+export class RefreshTokenRestApiGuard extends BearerTokenRestApiGuard {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     await super.canActivate(context);
     const req = context.switchToHttp().getRequest();
+
     if (req.tokenType !== TokenType.REFRESH) {
       throw new CustomException(
         ErrorCode.UNAUTHORIZED__INVALID_TOKEN,

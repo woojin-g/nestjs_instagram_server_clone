@@ -15,7 +15,7 @@ export class CommonService {
     private readonly configService: ConfigService,
   ) { }
 
-  async paginate<T extends BaseModel>(
+  paginate<T extends BaseModel>(
     dto: BasePaginationRequestDto,
     repository: Repository<T>,
     overrideFindOptions: FindManyOptions<T> = {},
