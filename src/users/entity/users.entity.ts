@@ -9,6 +9,7 @@ import { Exclude, Expose } from 'class-transformer';
 import { ChatRoomModel } from 'src/chat-rooms/entity/chat-rooms.entity';
 import { ChatMessageModel } from 'src/chat-rooms/chat-messages/entity/chat-messages.entity';
 import { CommentModel } from 'src/posts/comments/entity/comments.entity';
+import { FollowRelationModel } from './follow-relation.entity';
 
 // class-validator와 class-transformer는 Plain Object -> DTO 변환에 사용한다.
 
@@ -63,6 +64,21 @@ export class UserModel extends BaseModel {
 
   @OneToMany(() => ChatMessageModel, (message) => message.author)
   messages: ChatMessageModel[];
+
+  // 나를 팔로우하는 사람
+  @OneToMany(() => FollowRelationModel, (relation) => relation.followee)
+  followers: FollowRelationModel[];
+
+  // 내가 팔로우하는 사람
+  @OneToMany(() => FollowRelationModel, (relation) => relation.follower)
+  following: FollowRelationModel[];
+
+  // 팔로워 수와 팔로잉 수는 매번 쿼리를 통해 계산하는 것이 아니라, 따로 컬럼으로 둔다.
+  @Column({ default: 0 })
+  followerCount: number = 0;
+
+  @Column({ default: 0 })
+  followingCount: number = 0;
 
   @Column({ nullable: true })
   @Exclude()

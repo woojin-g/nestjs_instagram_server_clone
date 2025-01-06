@@ -10,6 +10,7 @@ import { User } from 'src/users/decorator/user.decorator';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { PostIdGuard } from './guard/post-id.guard';
+import { CommentsResourceOwnerGuard } from 'src/common/guard/resource-owner.guard';
 
 /**
  * postId 검증 방법
@@ -52,6 +53,7 @@ export class CommentsController {
   }
 
   @Patch(':commentId')
+  @UseGuards(CommentsResourceOwnerGuard)
   patchComment(
     @Param('commentId') commentId: number,
     @Body() dto: UpdateCommentDto,
@@ -60,6 +62,7 @@ export class CommentsController {
   }
 
   @Delete(':commentId')
+  @UseGuards(CommentsResourceOwnerGuard)
   deleteComment(
     @Param('commentId') commentId: number,
   ): Promise<number> {

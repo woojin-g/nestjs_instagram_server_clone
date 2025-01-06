@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { QueryFailedError, QueryRunner, Repository } from 'typeorm';
 import { PostModel } from './entity/posts.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -16,16 +11,13 @@ import { PostsPaginationRequestDto } from './dto/posts-pagination.dto';
 import { CommonService } from 'src/common/common.service';
 import { CursorPaginationResponseDto } from 'src/common/dto/base-pagination.dto';
 import { PagePaginationResponseDto } from 'src/common/dto/base-pagination.dto';
-import { POSTS_FOLDER_ABSOLUTE_PATH, TEMP_FOLDER_ABSOLUTE_PATH } from 'src/common/const/path.const';
-import { basename, join } from 'path';
-import { promises } from 'fs';
-import { CreatePostImageDto } from './images/dto/create-image.dto';
 import { ImageModel } from 'src/common/entity/image.entity';
 import { DEFAULT_POST_FIND_OPTIONS } from './const/default-post-find-options.const';
 import { CustomException } from 'src/common/exception-filter/custom-exception';
+import { ResourceOwnerChecker } from 'src/common/interface/resource-owner-checker.interface';
 
 @Injectable()
-export class PostsService {
+export class PostsService implements ResourceOwnerChecker {
   constructor(
     @InjectRepository(PostModel)
     private readonly postsRepository: Repository<PostModel>,
@@ -123,6 +115,20 @@ export class PostsService {
     }
     await this.postsRepository.delete(postId);
     return postId;
+  }
+
+  checkResourceOwner(resourceId: number, userId: number): Promise<boolean> {
+    return this.postsRepository.exists(
+      {
+        where: {
+          id: resourceId,
+          author: { id: userId },
+        },
+        relations: {
+          author: true,
+        },
+      }
+    );
   }
 
   async generatePosts(userId: number) {

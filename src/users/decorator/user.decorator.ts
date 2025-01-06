@@ -10,7 +10,7 @@ export const User = createParamDecorator((data: keyof UserModel | undefined, con
   if (!user) {
     throw new CustomException(
       ErrorCode.INTERNAL_SERVER_ERROR,
-      `User 데코레이터를 사용하려면 ${AccessTokenRestApiGuard.name}를 사용해야 합니다.`,
+      `${User.name} 데코레이터를 사용하려면 ${AccessTokenRestApiGuard.name}를 사용해야 합니다.`,
     );
   }
 

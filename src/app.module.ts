@@ -21,6 +21,7 @@ import { CommentsModule } from './posts/comments/comments.module';
 import { CommentModel } from './posts/comments/entity/comments.entity';
 import { UserRoleGuard } from './users/guard/user-role.guard';
 import { AccessTokenRestApiGuard } from './auth/guard/bearer-token.rest-api.guard';
+import { FollowRelationModel } from './users/entity/follow-relation.entity';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { AccessTokenRestApiGuard } from './auth/guard/bearer-token.rest-api.guar
         ChatRoomModel,
         ChatMessageModel,
         CommentModel,
+        FollowRelationModel,
       ],
       // ORM이 데이터베이스 스키마를 자동으로 동기화
       // ! 개발 환경에서만 사용

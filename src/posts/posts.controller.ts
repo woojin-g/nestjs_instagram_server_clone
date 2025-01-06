@@ -8,7 +8,6 @@ import {
   Patch,
   Post,
   Query,
-  UseFilters,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -27,6 +26,7 @@ import { QueryRunner } from 'src/common/decorator/query-runner.decorator';
 import { UserRoleType } from 'src/users/const/users.const';
 import { UserRole } from 'src/users/decorator/user-role.decorator';
 import { IsPublic } from 'src/common/decorator/is-public.decorator';
+import { PostsResourceOwnerGuard, ResourceOwnerGuard } from '../common/guard/resource-owner.guard';
 
 @Controller('posts')
 export class PostsController {
@@ -53,11 +53,11 @@ export class PostsController {
     return this.postsService.paginatePosts(dto);
   }
 
-  @Get(':id')
+  @Get(':postId')
   @IsPublic() // 액세스 토큰 없이 접근 가능
   getPostById(
     // Pipe는 Injectable 이므로 자동으로 주입됨
-    @Param('id', ParseIntPipe)
+    @Param('postId', ParseIntPipe)
     id: number,
   ): Promise<PostModel> {
     return this.postsService.getPostById(id);
@@ -93,18 +93,19 @@ export class PostsController {
     return this.postsService.getPostById(post.id, queryRunner);
   }
 
-  @Patch(':id')
+  @Patch(':postId')
+  @UseGuards(PostsResourceOwnerGuard)
   patchPosts(
-    @Param('id', ParseIntPipe) postId: number,
+    @Param('postId', ParseIntPipe) postId: number,
     @Body() body: UpdatePostDto,
   ): Promise<PostModel> {
     return this.postsService.updatePost(postId, body);
   }
 
-  @Delete(':id')
+  @Delete(':postId')
   @UserRole(UserRoleType.ADMIN) // Amin 권한인 경우에 삭제 가능
   deletePosts(
-    @Param('id', ParseIntPipe) postId: number,
+    @Param('postId', ParseIntPipe) postId: number,
   ): Promise<number> {
     return this.postsService.deletePost(postId);
   }

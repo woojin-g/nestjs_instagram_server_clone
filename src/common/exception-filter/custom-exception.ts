@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, HttpException, InternalServerErrorException, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, ConflictException, ForbiddenException, HttpException, InternalServerErrorException, NotFoundException, UnauthorizedException } from "@nestjs/common";
 
 import { HttpStatus } from "@nestjs/common";
 import { ErrorCode } from "../const/error.const";
@@ -44,9 +44,10 @@ export class CustomException extends HttpException {
 export const httpExceptionErrorCodeMap = {
   [InternalServerErrorException.name]: ErrorCode.INTERNAL_SERVER_ERROR,
   [UnauthorizedException.name]: ErrorCode.UNAUTHORIZED,
+  [ConflictException.name]: ErrorCode.CONFLICT,
+  [ForbiddenException.name]: ErrorCode.FORBIDDEN,
   [BadRequestException.name]: ErrorCode.BAD_REQUEST,
   [NotFoundException.name]: ErrorCode.NOT_FOUND,
-  [ConflictException.name]: ErrorCode.CONFLICT,
 }
 
 export const errorMessageMap = {
@@ -63,7 +64,7 @@ export const errorMessageMap = {
   [ErrorCode.CONFLICT__EMAIL_ALREADY_EXISTS]: '이미 존재하는 이메일입니다.',
 
   [ErrorCode.FORBIDDEN]: '권한이 없습니다.',
-  [ErrorCode.FORBIDDEN__NOT_AUTHOR]: '작성자가 아닙니다.',
+  [ErrorCode.FORBIDDEN__NOT_RESOURCE_OWNER]: '리소스 소유자가 아닙니다.',
 
   [ErrorCode.NOT_FOUND]: '존재하지 않는 데이터입니다.',
   [ErrorCode.NOT_FOUND__USER]: '존재하지 않는 사용자입니다.',
@@ -71,6 +72,7 @@ export const errorMessageMap = {
   [ErrorCode.NOT_FOUND__COMMENT]: '존재하지 않는 댓글입니다.',
   [ErrorCode.NOT_FOUND__IMAGE]: '존재하지 않는 이미지입니다.',
   [ErrorCode.NOT_FOUND__CHAT_ROOM]: '존재하지 않는 채팅방입니다.',
+  [ErrorCode.NOT_FOUND__FOLLOW_RELATION]: '존재하지 않는 팔로우 관계입니다.',
 
   [ErrorCode.BAD_REQUEST]: '잘못된 요청입니다.',
   [ErrorCode.BAD_REQUEST__STRING_TOO_LONG]: '너무 긴 문자열입니다.',
@@ -91,7 +93,7 @@ const errorCodeStatusMap = {
   [ErrorCode.CONFLICT__EMAIL_ALREADY_EXISTS]: HttpStatus.CONFLICT,
 
   [ErrorCode.FORBIDDEN]: HttpStatus.FORBIDDEN,
-  [ErrorCode.FORBIDDEN__NOT_AUTHOR]: HttpStatus.FORBIDDEN,
+  [ErrorCode.FORBIDDEN__NOT_RESOURCE_OWNER]: HttpStatus.FORBIDDEN,
 
   [ErrorCode.NOT_FOUND]: HttpStatus.NOT_FOUND,
   [ErrorCode.NOT_FOUND__USER]: HttpStatus.NOT_FOUND,
@@ -99,7 +101,7 @@ const errorCodeStatusMap = {
   [ErrorCode.NOT_FOUND__COMMENT]: HttpStatus.NOT_FOUND,
   [ErrorCode.NOT_FOUND__IMAGE]: HttpStatus.NOT_FOUND,
   [ErrorCode.NOT_FOUND__CHAT_ROOM]: HttpStatus.NOT_FOUND,
-
+  [ErrorCode.NOT_FOUND__FOLLOW_RELATION]: HttpStatus.NOT_FOUND,
   [ErrorCode.BAD_REQUEST]: HttpStatus.BAD_REQUEST,
   [ErrorCode.BAD_REQUEST__STRING_TOO_LONG]: HttpStatus.BAD_REQUEST,
   [ErrorCode.BAD_REQUEST__STRING_TOO_SHORT]: HttpStatus.BAD_REQUEST,

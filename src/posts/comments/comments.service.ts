@@ -10,9 +10,10 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { CustomException } from 'src/common/exception-filter/custom-exception';
 import { ErrorCode } from 'src/common/const/error.const';
 import { UpdateCommentDto } from './dto/update-comment.dto';
+import { ResourceOwnerChecker } from 'src/common/interface/resource-owner-checker.interface';
 
 @Injectable()
-export class CommentsService {
+export class CommentsService implements ResourceOwnerChecker {
   constructor(
     @InjectRepository(CommentModel)
     private readonly commentsRepository: Repository<CommentModel>,
@@ -86,5 +87,19 @@ export class CommentsService {
     await this.getCommentById(commentId);
     await this.commentsRepository.delete(commentId);
     return commentId;
+  }
+
+  checkResourceOwner(resourceId: number, userId: number): Promise<boolean> {
+    return this.commentsRepository.exists(
+      {
+        where: {
+          id: resourceId,
+          author: { id: userId },
+        },
+        relations: {
+          author: true,
+        },
+      }
+    );
   }
 }

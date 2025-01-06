@@ -3,6 +3,7 @@ import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModel } from './entity/users.entity';
+import { FollowRelationModel } from './entity/follow-relation.entity';
 
 @Module({
   imports: [
@@ -10,6 +11,7 @@ import { UserModel } from './entity/users.entity';
     // Provider에 해당 엔티티의 Repository를 주입
     TypeOrmModule.forFeature([
       UserModel,
+      FollowRelationModel,
     ]),
   ],
   exports: [UsersService],
